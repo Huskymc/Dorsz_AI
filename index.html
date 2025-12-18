@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>DorszHub â€“ Generatory Minecraft & Discord</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --c-bg: #0a0e27;
+      --c-card: #1e2139;
+      --c-accent: #6c5ce7;
+      --c-accent-hover: #5f4fd1;
+      --c-text: #ffffff;
+      --c-subtext: #a0a0c0;
+      --c-border: #2d3250;
+    }
+
+    body {
+      margin: 0;
+      background: var(--c-bg);
+      font-family: 'Segoe UI', sans-serif;
+      color: var(--c-text);
+    }
+
+    header {
+      background: #151932;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-bottom: 2px solid var(--c-border);
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, var(--c-accent), #a29bfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      cursor: pointer;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    nav button {
+      background: var(--c-accent);
+      border: none;
+      padding: 0.6rem 1rem;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    nav button:hover {
+      background: var(--c-accent-hover);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1rem 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .tabs button {
+      background: none;
+      border: none;
+      color: var(--c-subtext);
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      color: var(--c-accent);
+      border-bottom: 2px solid var(--c-accent);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .card {
+      background: var(--c-card);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid var(--c-border);
+    }
+
+    .card h2 {
+      margin-bottom: 1rem;
+      color: var(--c-accent);
+    }
+
+    .card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .card ul li {
+      margin: 0.5rem 0;
+    }
+
+    .highlight {
+      background: rgba(108, 92, 231, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" onclick="switchTab('dashboard')">ðŸŸ DorszHub</div>
+    <nav>
+      <button onclick="switchTab('plugins')">ðŸ”Œ Pluginy</button>
+      <button onclick="switchTab('scripts')">ðŸ“œ Skrypty</button>
+      <button onclick="switchTab('bots')">ðŸ¤– Boty</button>
+      <button onclick="switchTab('gui')">ðŸŽ¨ GUI</button>
+      <button onclick="switchTab('config')">âš™ï¸ Config</button>
+      <button onclick="switchTab('packs')">ðŸ“¦ Paczki</button>
+      <button onclick="switchTab('colors')">ðŸŒˆ Kolory</button>
+      <button onclick="switchTab('pricing')">ðŸ’Ž Cennik</button>
+      <button onclick="switchTab('ai')">ðŸ¤– AI</button>
+    </nav>
+  </header>
+
+  <div class="tabs">
+    <button class="active" onclick="switchTab('dashboard')">ðŸ  Start</button>
+    <button onclick="switchTab('plugins')">ðŸ”Œ Pluginy</button>
+    <button onclick="switchTab('scripts')">ðŸ“œ Skrypty</button>
+    <button onclick="switchTab('bots')">ðŸ¤– Boty</button>
+    <button onclick="switchTab('gui')">ðŸŽ¨ GUI</button>
+    <button onclick="switchTab('config')">âš™ï¸ Config</button>
+    <button onclick="switchTab('packs')">ðŸ“¦ Paczki</button>
+    <button onclick="switchTab('colors')">ðŸŒˆ Kolory</button>
+    <button onclick="switchTab('pricing')">ðŸ’Ž Cennik</button>
+    <button onclick="switchTab('ai')">ðŸ¤– AI</button>
+  </div>
+
+  <div class="container">
+    <!-- Dashboard -->
+    <div id="dashboard" class="content-section active">
+      <div class="card">
+        <h2>ðŸ  Witaj w DorszHub!</h2>
+        <p>To narzÄ™dzie pozwala Ci tworzyÄ‡:</p>
+        <ul>
+          <li>ðŸ”Œ Pluginy Minecraft</li>
+          <li>ðŸ“œ Skrypty Skript</li>
+          <li>ðŸ¤– Boty Discord</li>
+          <li>ðŸŽ¨ GUI do menu</li>
+          <li>âš™ï¸ Configi YAML/JSON</li>
+          <li>ðŸ“¦ Paczki serwerowe</li>
+          <li>ðŸŒˆ Palety kolorÃ³w</li>
+          <li>ðŸ¤– Wspomaga CiÄ™ AI</li>
+        </ul>
+        <p class="mt-1">Kliknij zakÅ‚adkÄ™ powyÅ¼ej, aby rozpoczÄ…Ä‡, albo zapytaj <span class="highlight">ðŸ¤– AI Asystenta</span></p>
+      </div>
+      <div class="card">
+        <h2>ðŸ’¡ PrzykÅ‚ady uÅ¼ycia</h2>
+        <ul>
+          <li>â€¢ Chcesz plugin? â†’ <span class="highlight">ðŸ”Œ Pluginy</span></li>
+          <li>â€¢ Discord Bot? â†’ <span class="highlight">ðŸ¤– Boty</span></li>
+          <li>â€¢ Paczka serwera? â†’ <span class="highlight">ðŸ“¦ Paczki</span></li>
+        </ul>
+      </div>
+    </div>
+        <!-- Plugin Generator -->
+    <div id="plugins" class="content-section">
+      <div class="card">
+        <h2>ðŸ”Œ Generator PluginÃ³w</h2>
+        <label>Nazwa pluginu</label>
+        <input type="text" id="pluginName" placeholder="MojPlugin" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="pluginDesc" placeholder="Opisz dziaÅ‚anie, komendy, np. /spawn teleportuje gracza"></textarea>
+        <button class="btn" onclick="generatePlugin()">âš¡ Generuj Plugin</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="pluginCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skript Generator -->
+    <div id="scripts" class="content-section">
+      <div class="card">
+        <h2>ðŸ“œ Generator SkryptÃ³w (Skript)</h2>
+        <label>Nazwa skryptu</label>
+        <input type="text" id="scriptName" placeholder="MojSkrypt" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="scriptDesc" placeholder="Np. /spawn teleportuje na spawn"></textarea>
+        <button class="btn" onclick="generateScript()">âš¡ Generuj Skrypt</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="scriptCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Discord Generator -->
+    <div id="bots" class="content-section">
+      <div class="card">
+        <h2>ðŸ¤– Generator BotÃ³w Discord</h2>
+        <label>Nazwa bota</label>
+        <input type="text" id="botName" placeholder="MojBot" />
+        <label>JÄ™zyk</label>
+        <select id="botLang">
+          <option value="js">JavaScript (discord.js)</option>
+          <option value="py">Python (discord.py)</option>
+        </select>
+        <label>Prefix komend</label>
+        <input type="text" id="botPrefix" value="!" />
+        <label>Opis co ma robiÄ‡ bot</label>
+        <textarea id="botDesc" placeholder="Np. /ping odpowiada Pong!, bot wita graczy..."></textarea>
+        <button class="btn" onclick="generateBot()">âš¡ Generuj Bot</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="botCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUI Builder (Minecraft menu) -->
+    <div id="gui" class="content-section">
+      <div class="card">
+        <h2>ðŸŽ¨ GUI Builder</h2>
+        <label>Nazwa GUI</label>
+        <input type="text" id="guiName" placeholder="Menu gÅ‚Ã³wne" />
+        <label>IloÅ›Ä‡ slotÃ³w (9â€“54)</label>
+        <input type="number" id="guiSlots" placeholder="27" />
+        <label>Lista itemÃ³w (po przecinku, np: DIAMOND, EMERALD)</label>
+        <input type="text" id="guiItems" placeholder="DIAMOND, EMERALD, TNT" />
+        <button class="btn" onclick="generateGUI()">âš¡ Generuj GUI</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="guiCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Generator -->
+    <div id="config" class="content-section">
+      <div class="card">
+        <h2>âš™ï¸ Generator ConfigÃ³w</h2>
+        <label>Format</label>
+        <select id="configFormat">
+          <option value="yaml">YAML (.yml)</option>
+          <option value="json">JSON (.json)</option>
+        </select>
+        <label>Opis (np. plugin ma prefix, baza danych...)</label>
+        <textarea id="configDesc" placeholder="prefix, no-permission, database: host, user, pass..."></textarea>
+        <button class="btn" onclick="generateConfig()">âš¡ Generuj Config</button>
+        <h3>Wynik:</h3>
+        <div class="config-editor">
+          <textarea id="configCode" readonly></textarea>
+        </div>
+      </div>
+          <!-- Plugin Generator -->
+    <div id="plugins" class="content-section">
+      <div class="card">
+        <h2>ðŸ”Œ Generator PluginÃ³w</h2>
+        <label>Nazwa pluginu</label>
+        <input type="text" id="pluginName" placeholder="MojPlugin" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="pluginDesc" placeholder="Opisz dziaÅ‚anie, komendy, np. /spawn teleportuje gracza"></textarea>
+        <button class="btn" onclick="generatePlugin()">âš¡ Generuj Plugin</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="pluginCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skript Generator -->
+    <div id="scripts" class="content-section">
+      <div class="card">
+        <h2>ðŸ“œ Generator SkryptÃ³w (Skript)</h2>
+        <label>Nazwa skryptu</label>
+        <input type="text" id="scriptName" placeholder="MojSkrypt" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="scriptDesc" placeholder="Np. /spawn teleportuje na spawn"></textarea>
+        <button class="btn" onclick="generateScript()">âš¡ Generuj Skrypt</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="scriptCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Discord Generator -->
+    <div id="bots" class="content-section">
+      <div class="card">
+        <h2>ðŸ¤– Generator BotÃ³w Discord</h2>
+        <label>Nazwa bota</label>
+        <input type="text" id="botName" placeholder="MojBot" />
+        <label>JÄ™zyk</label>
+        <select id="botLang">
+          <option value="js">JavaScript (discord.js)</option>
+          <option value="py">Python (discord.py)</option>
+        </select>
+        <label>Prefix komend</label>
+        <input type="text" id="botPrefix" value="!" />
+        <label>Opis co ma robiÄ‡ bot</label>
+        <textarea id="botDesc" placeholder="Np. /ping odpowiada Pong!, bot wita graczy..."></textarea>
+        <button class="btn" onclick="generateBot()">âš¡ Generuj Bot</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="botCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUI Builder (Minecraft menu) -->
+    <div id="gui" class="content-section">
+      <div class="card">
+        <h2>ðŸŽ¨ GUI Builder</h2>
+        <label>Nazwa GUI</label>
+        <input type="text" id="guiName" placeholder="Menu gÅ‚Ã³wne" />
+        <label>IloÅ›Ä‡ slotÃ³w (9â€“54)</label>
+        <input type="number" id="guiSlots" placeholder="27" />
+        <label>Lista itemÃ³w (po przecinku, np: DIAMOND, EMERALD)</label>
+        <input type="text" id="guiItems" placeholder="DIAMOND, EMERALD, TNT" />
+        <button class="btn" onclick="generateGUI()">âš¡ Generuj GUI</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="guiCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Generator -->
+    <div id="config" class="content-section">
+      <div class="card">
+        <h2>âš™ï¸ Generator ConfigÃ³w</h2>
+        <label>Format</label>
+        <select id="configFormat">
+          <option value="yaml">YAML (.yml)</option>
+          <option value="json">JSON (.json)</option>
+        </select>
+        <label>Opis (np. plugin ma prefix, baza danych...)</label>
+        <textarea id="configDesc" placeholder="prefix, no-permission, database: host, user, pass..."></textarea>
+        <button class="btn" onclick="generateConfig()">âš¡ Generuj Config</button>
+        <h3>Wynik:</h3>
+        <div class="config-editor">
+          <textarea id="configCode" readonly></textarea>
+        </div>
+      </div>
+    </div>    <!-- Plugin Generator -->
+    <div id="plugins" class="content-section">
+      <div class="card">
+        <h2>ðŸ”Œ Generator PluginÃ³w</h2>
+        <label>Nazwa pluginu</label>
+        <input type="text" id="pluginName" placeholder="MojPlugin" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="pluginDesc" placeholder="Opisz dziaÅ‚anie, komendy, np. /spawn teleportuje gracza"></textarea>
+        <button class="btn" onclick="generatePlugin()">âš¡ Generuj Plugin</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="pluginCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skript Generator -->
+    <div id="scripts" class="content-section">
+      <div class="card">
+        <h2>ðŸ“œ Generator SkryptÃ³w (Skript)</h2>
+        <label>Nazwa skryptu</label>
+        <input type="text" id="scriptName" placeholder="MojSkrypt" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="scriptDesc" placeholder="Np. /spawn teleportuje na spawn"></textarea>
+        <button class="btn" onclick="generateScript()">âš¡ Generuj Skrypt</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="scriptCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Discord Generator -->
+    <div id="bots" class="content-section">
+      <div class="card">
+        <h2>ðŸ¤– Generator BotÃ³w Discord</h2>
+        <label>Nazwa bota</label>
+        <input type="text" id="botName" placeholder="MojBot" />
+        <label>JÄ™zyk</label>
+        <select id="botLang">
+          <option value="js">JavaScript (discord.js)</option>
+          <option value="py">Python (discord.py)</option>
+        </select>
+        <label>Prefix komend</label>
+        <input type="text" id="botPrefix" value="!" />
+        <label>Opis co ma robiÄ‡ bot</label>
+        <textarea id="botDesc" placeholder="Np. /ping odpowiada Pong!, bot wita graczy..."></textarea>
+        <button class="btn" onclick="generateBot()">âš¡ Generuj Bot</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="botCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUI Builder (Minecraft menu) -->
+    <div id="gui" class="content-section">
+      <div class="card">
+        <h2>ðŸŽ¨ GUI Builder</h2>
+        <label>Nazwa GUI</label>
+        <input type="text" id="guiName" placeholder="Menu gÅ‚Ã³wne" />
+        <label>IloÅ›Ä‡ slotÃ³w (9â€“54)</label>
+        <input type="number" id="guiSlots" placeholder="27" />
+        <label>Lista itemÃ³w (po przecinku, np: DIAMOND, EMERALD)</label>
+        <input type="text" id="guiItems" placeholder="DIAMOND, EMERALD, TNT" />
+        <button class="btn" onclick="generateGUI()">âš¡ Generuj GUI</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="guiCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Generator -->
+    <div id="config" class="content-section">
+      <div class="card">
+        <h2>âš™ï¸ Generator ConfigÃ³w</h2>
+        <label>Format</label>
+        <select id="configFormat">
+          <option value="yaml">YAML (.yml)</option>
+          <option value="json">JSON (.json)</option>
+        </select>
+        <label>Opis (np. plugin ma prefix, baza danych...)</label>
+        <textarea id="configDesc" placeholder="prefix, no-permission, database: host, user, pass..."></textarea>
+        <button class="btn" onclick="generateConfig()">âš¡ Generuj Config</button>
+        <h3>Wynik:</h3>
+        <div class="config-editor">
+          <textarea id="configCode" readonly></textarea>
+        </div>
+            <!-- Plugin Generator -->
+    <div id="plugins" class="content-section">
+      <div class="card">
+        <h2>ðŸ”Œ Generator PluginÃ³w</h2>
+        <label>Nazwa pluginu</label>
+        <input type="text" id="pluginName" placeholder="MojPlugin" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="pluginDesc" placeholder="Opisz dziaÅ‚anie, komendy, np. /spawn teleportuje gracza"></textarea>
+        <button class="btn" onclick="generatePlugin()">âš¡ Generuj Plugin</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="pluginCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skript Generator -->
+    <div id="scripts" class="content-section">
+      <div class="card">
+        <h2>ðŸ“œ Generator SkryptÃ³w (Skript)</h2>
+        <label>Nazwa skryptu</label>
+        <input type="text" id="scriptName" placeholder="MojSkrypt" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="scriptDesc" placeholder="Np. /spawn teleportuje na spawn"></textarea>
+        <button class="btn" onclick="generateScript()">âš¡ Generuj Skrypt</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="scriptCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Discord Generator -->
+    <div id="bots" class="content-section">
+      <div class="card">
+        <h2>ðŸ¤– Generator BotÃ³w Discord</h2>
+        <label>Nazwa bota</label>
+        <input type="text" id="botName" placeholder="MojBot" />
+        <label>JÄ™zyk</label>
+        <select id="botLang">
+          <option value="js">JavaScript (discord.js)</option>
+          <option value="py">Python (discord.py)</option>
+        </select>
+        <label>Prefix komend</label>
+        <input type="text" id="botPrefix" value="!" />
+        <label>Opis co ma robiÄ‡ bot</label>
+        <textarea id="botDesc" placeholder="Np. /ping odpowiada Pong!, bot wita graczy..."></textarea>
+        <button class="btn" onclick="generateBot()">âš¡ Generuj Bot</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="botCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUI Builder (Minecraft menu) -->
+    <div id="gui" class="content-section">
+      <div class="card">
+        <h2>ðŸŽ¨ GUI Builder</h2>
+        <label>Nazwa GUI</label>
+        <input type="text" id="guiName" placeholder="Menu gÅ‚Ã³wne" />
+        <label>IloÅ›Ä‡ slotÃ³w (9â€“54)</label>
+        <input type="number" id="guiSlots" placeholder="27" />
+        <label>Lista itemÃ³w (po przecinku, np: DIAMOND, EMERALD)</label>
+        <input type="text" id="guiItems" placeholder="DIAMOND, EMERALD, TNT" />
+        <button class="btn" onclick="generateGUI()">âš¡ Generuj GUI</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="guiCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Generator -->
+    <div id="config" class="content-section">
+      <div class="card">
+        <h2>âš™ï¸ Generator ConfigÃ³w</h2>
+        <label>Format</label>
+        <select id="configFormat">
+          <option value="yaml">YAML (.yml)</option>
+          <option value="json">JSON (.json)</option>
+        </select>
+        <label>Opis (np. plugin ma prefix, baza danych...)</label>
+        <textarea id="configDesc" placeholder="prefix, no-permission, database: host, user, pass..."></textarea>
+        <button class="btn" onclick="generateConfig()">âš¡ Generuj Config</button>
+        <h3>Wynik:</h3>
+        <div class="config-editor">
+          <textarea id="configCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+    <!-- Plugin Generator -->
+    <div id="plugins" class="content-section">
+      <div class="card">
+        <h2>ðŸ”Œ Generator PluginÃ³w</h2>
+        <label>Nazwa pluginu</label>
+        <input type="text" id="pluginName" placeholder="MojPlugin" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="pluginDesc" placeholder="Opisz dziaÅ‚anie, komendy, np. /spawn teleportuje gracza"></textarea>
+        <button class="btn" onclick="generatePlugin()">âš¡ Generuj Plugin</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="pluginCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skript Generator -->
+    <div id="scripts" class="content-section">
+      <div class="card">
+        <h2>ðŸ“œ Generator SkryptÃ³w (Skript)</h2>
+        <label>Nazwa skryptu</label>
+        <input type="text" id="scriptName" placeholder="MojSkrypt" />
+        <label>Opis dziaÅ‚ania</label>
+        <textarea id="scriptDesc" placeholder="Np. /spawn teleportuje na spawn"></textarea>
+        <button class="btn" onclick="generateScript()">âš¡ Generuj Skrypt</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="scriptCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot Discord Generator -->
+    <div id="bots" class="content-section">
+      <div class="card">
+        <h2>ðŸ¤– Generator BotÃ³w Discord</h2>
+        <label>Nazwa bota</label>
+        <input type="text" id="botName" placeholder="MojBot" />
+        <label>JÄ™zyk</label>
+        <select id="botLang">
+          <option value="js">JavaScript (discord.js)</option>
+          <option value="py">Python (discord.py)</option>
+        </select>
+        <label>Prefix komend</label>
+        <input type="text" id="botPrefix" value="!" />
+        <label>Opis co ma robiÄ‡ bot</label>
+        <textarea id="botDesc" placeholder="Np. /ping odpowiada Pong!, bot wita graczy..."></textarea>
+        <button class="btn" onclick="generateBot()">âš¡ Generuj Bot</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="botCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUI Builder (Minecraft menu) -->
+    <div id="gui" class="content-section">
+      <div class="card">
+        <h2>ðŸŽ¨ GUI Builder</h2>
+        <label>Nazwa GUI</label>
+        <input type="text" id="guiName" placeholder="Menu gÅ‚Ã³wne" />
+        <label>IloÅ›Ä‡ slotÃ³w (9â€“54)</label>
+        <input type="number" id="guiSlots" placeholder="27" />
+        <label>Lista itemÃ³w (po przecinku, np: DIAMOND, EMERALD)</label>
+        <input type="text" id="guiItems" placeholder="DIAMOND, EMERALD, TNT" />
+        <button class="btn" onclick="generateGUI()">âš¡ Generuj GUI</button>
+        <h3>Kod:</h3>
+        <div class="config-editor">
+          <textarea id="guiCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Generator -->
+    <div id="config" class="content-section">
+      <div class="card">
+        <h2>âš™ï¸ Generator ConfigÃ³w</h2>
+        <label>Format</label>
+        <select id="configFormat">
+          <option value="yaml">YAML (.yml)</option>
+          <option value="json">JSON (.json)</option>
+        </select>
+        <label>Opis (np. plugin ma prefix, baza danych...)</label>
+        <textarea id="configDesc" placeholder="prefix, no-permission, database: host, user, pass..."></textarea>
+        <button class="btn" onclick="generateConfig()">âš¡ Generuj Config</button>
+        <h3>Wynik:</h3>
+        <div class="config-editor">
+          <textarea id="configCode" readonly></textarea>
+        </div>
+      </div>
+    </div>
+    <!-- Paczki Serwerowe -->
+<div id="packs" class="content-section">
+  <div class="card">
+    <h2>ðŸ“¦ Kreator Paczki Serwera</h2>
+    <label>Nazwa paczki</label>
+    <input type="text" id="packName" placeholder="MojSerwer" />
+    <label>Pluginy (po przecinku)</label>
+    <input type="text" id="packPlugins" placeholder="EssentialsX, LuckPerms" />
+    <label>Opis serwera</label>
+    <textarea id="packDesc" placeholder="Survival + ekonomia, Skyblock, Rangi VIP/Premium"></textarea>
+    <button class="btn" onclick="generatePack()">ðŸ“¦ Generuj</button>
+    <h3>ZawartoÅ›Ä‡:</h3>
+    <div class="config-editor"><textarea id="packOutput" readonly></textarea></div>
+  </div>
+</div>
+
+<!-- Kolory Minecraft -->
+<div id="colors" class="content-section">
+  <div class="card">
+    <h2>ðŸŒˆ Paleta kolorÃ³w Minecraft</h2>
+    <p>Kliknij by skopiowaÄ‡ kod koloru:</p>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,60px);gap:.5rem;">
+      <button class="btn" onclick="copyColor('&0')">Â§0</button>
+      <button class="btn" onclick="copyColor('&1')">Â§1</button>
+      <button class="btn" onclick="copyColor('&2')">Â§2</button>
+      <button class="btn" onclick="copyColor('&3')">Â§3</button>
+      <button class="btn" onclick="copyColor('&4')">Â§4</button>
+      <button class="btn" onclick="copyColor('&5')">Â§5</button>
+      <button class="btn" onclick="copyColor('&6')">Â§6</button>
+      <button class="btn" onclick="copyColor('&7')">Â§7</button>
+      <button class="btn" onclick="copyColor('&8')">Â§8</button>
+      <button class="btn" onclick="copyColor('&9')">Â§9</button>
+      <button class="btn" onclick="copyColor('&a')">Â§a</button>
+      <button class="btn" onclick="copyColor('&b')">Â§b</button>
+      <button class="btn" onclick="copyColor('&c')">Â§c</button>
+      <button class="btn" onclick="copyColor('&d')">Â§d</button>
+      <button class="btn" onclick="copyColor('&e')">Â§e</button>
+      <button class="btn" onclick="copyColor('&f')">Â§f</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cennik -->
+<div id="pricing" class="content-section">
+  <div class="card">
+    <h2>ðŸ’Ž Plany i Cennik</h2>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #444;">
+        <th style="text-align:left">Plan</th>
+        <th>Free</th>
+        <th>Premium</th>
+        <th>Ultimate</th>
+      </tr>
+      <tr>
+        <td>Generatory</td><td>âœ…</td><td>âœ…</td><td>âœ…</td>
+      </tr>
+      <tr>
+        <td>AI</td><td>Podstawowe</td><td>Zaawansowane</td><td>PRO</td>
+      </tr>
+      <tr>
+        <td>Hosting</td><td>âŒ</td><td>2 vCPU</td><td>4 vCPU RDP</td>
+      </tr>
+      <tr>
+        <td>Wsparcie</td><td>Limited</td><td>24h Email</td><td>24/7 Live</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- AI Asystent (zakÅ‚adka po prawej jak w ksiÄ…Å¼ce) -->
+<div class="ai-toggle" onclick="toggleAI()">ðŸ¤– AI</div>
+
+<div id="aiBox" class="aiBox" style="
+  position:fixed;
+  right:-400px;
+  top:0;
+  width:400px;
+  height:100vh;
+  background:#1e2139;
+  border-left:2px solid #2d3250;
+  display:flex;
+  flex-direction:column;
+  transition:right .3s;
+  z-index:9999;
+">
+  <div style="padding:1rem;border-bottom:2px solid #2d3250;">
+    <strong>ðŸ§  DorszHub AI</strong>
+    <button style="float:right;background:none;border:none;color:#fff;font-size:1.2rem;" onclick="toggleAI()">&times;</button>
+    <p class="text-muted">Zadaj pytanie lub wybierz temat</p>
+  </div>
+  <div id="aiChat" style="flex:1;padding:1rem;overflow:auto;"></div>
+  <div style="border-top:2px solid #2d3250;padding:1rem;">
+    <input type="text" id="aiInput" placeholder="Zadaj pytanie..." style="width:75%;padding:.5rem;border-radius:6px;border:1px solid #444;">
+    <button onclick="sendAI()" style="padding:.5rem 1rem;margin-left:.5rem;">ðŸ“¤</button>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll(".content-section").forEach(s => s.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+  [...document.querySelectorAll(".tabs button")].find(b => b.textContent.includes(tab.charAt(0).toUpperCase())).classList.add("active");
+}
+
+function generatePlugin() {
+  const name = document.getElementById("pluginName").value || "MyPlugin";
+  const desc = document.getElementById("pluginDesc").value || "Opis pluginu";
+  const code = `package com.example.${name.toLowerCase()};
+
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class ${name} extends JavaPlugin {
+  @Override
+  public void onEnable() {
+    getLogger().info("${desc}");
+  }
+}`;
+  document.getElementById("pluginCode").value = code;
+}
+
+function generateScript() {
+  const name = document.getElementById("scriptName").value || "MyScript";
+  const desc = document.getElementById("scriptDesc").value || "Opis dziaÅ‚ania";
+  const code = `command /${name.toLowerCase()}:
+  trigger:
+    send "&a${desc}"`;
+  document.getElementById("scriptCode").value = code;
+}
+
+function generateBot() {
+  const name = document.getElementById("botName").value || "MyBot";
+  const lang = document.getElementById("botLang").value;
+  const prefix = document.getElementById("botPrefix").value || "!";
+  const desc = document.getElementById("botDesc").value || "Funkcje bota";
+
+  let code = "";
+
+  if (lang === "js") {
+    code = `const { Client, GatewayIntentBits } = require("discord.js");
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+});
+const PREFIX = "${prefix}";
+
+client.once("ready", () => {
+  console.log("${name} dziaÅ‚a!");
+});
+
+client.on("messageCreate", message => {
+  if (!message.content.startsWith(PREFIX)) return;
+  if (message.content === PREFIX + "ping") message.reply("Pong!");
+});
+
+client.login("YOUR_TOKEN");`;
+  } else {
+    code = `import discord
+from discord.ext import commands
+
+bot = commands.Bot(command_prefix="${prefix}")
+
+@bot.event
+async def on_ready():
+  print("${name} dziaÅ‚a!")
+
+@bot.command()
+async def ping(ctx):
+  await ctx.send("Pong!")
+
+bot.run("YOUR_TOKEN")`;
+  }
+
+  document.getElementById("botCode").value = code;
+}
+
+function generateGUI() {
+  const name = document.getElementById("guiName").value || "GUI";
+  const slots = parseInt(document.getElementById("guiSlots").value || "27");
+  const items = (document.getElementById("guiItems").value || "").split(",").map(i => i.trim()).filter(Boolean);
+
+  let code = `public void openGUI(Player player) {
+  Inventory inv = Bukkit.createInventory(null, ${slots}, "${name}");
+`;
+
+  items.forEach((item, i) => {
+    code += `  inv.setItem(${i}, new ItemStack(Material.${item.toUpperCase()}));\n`;
+  });
+
+  code += `  player.openInventory(inv);
+}`;
+
+  document.getElementById("guiCode").value = code;
+}
+
+function generateConfig() {
+  const format = document.getElementById("configFormat").value;
+  const desc = document.getElementById("configDesc").value;
+
+  if (format === "yaml") {
+    document.getElementById("configCode").value = `# Config YAML
+description: "${desc}"
+prefix: "&7[Plugin] "
+messages:
+  no-permission: "&cBrak uprawnieÅ„"`;
+  } else {
+    document.getElementById("configCode").value = `{
+  "description": "${desc}",
+  "prefix": "&7[Plugin]",
+  "messages": {
+    "no-permission": "&cBrak uprawnieÅ„"
+  }
+}`;
+  }
+}
+
+function generatePack() {
+  const name = document.getElementById("packName").value;
+  const plugins = document.getElementById("packPlugins").value;
+  const desc = document.getElementById("packDesc").value;
+
+  const out = `ðŸ“ ${name}/
+â”œâ”€â”€ plugins/ (${plugins})
+â”œâ”€â”€ world/
+â”œâ”€â”€ server.properties
+â””â”€â”€ README.txt
+
+Opis: ${desc}
+Wersja: 1.20.4
+Rangi: VIP, Moderator, Admin`;
+
+  document.getElementById("packOutput").value = out;
+}
+
+function copyColor(code) {
+  navigator.clipboard.writeText(code);
+  alert("Skopiowano: " + code);
+}
+
+function toggleAI() {
+  const box = document.getElementById("aiBox");
+  box.style.right = box.style.right === "0px" ? "-400px" : "0px";
+}
+
+function sendAI() {
+  const input = document.getElementById("aiInput");
+  const chat = document.getElementById("aiChat");
+  const user = input.value;
+
+  if (!user) return;
+  const div = document.createElement("div");
+  div.innerText = "ðŸ§ " + user;
+  div.style.marginBottom = "0.5rem";
+  chat.appendChild(div);
+
+  const reply = documen
