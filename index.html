@@ -1,273 +1,200 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <title>DorszHub – Generatory Minecraft & Discord</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root {
-      --c-bg: #0a0e27;
-      --c-card: #1e2139;
-      --c-accent: #6c5ce7;
-      --c-accent-hover: #5f4fd1;
-      --c-text: #ffffff;
-      --c-subtext: #a0a0c0;
-      --c-border: #2d3250;
-    }
+<meta charset="UTF-8">
+<title>MC Hosting Panel</title>
 
-    body {
-      margin: 0;
-      background: var(--c-bg);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--c-text);
-      line-height: 1.6;
-    }
+<style>
+body{
+    margin:0;
+    font-family:Inter,Arial;
+    background:#0f172a;
+    color:#e5e7eb;
+}
+header{
+    background:#020617;
+    padding:16px;
+    font-size:20px;
+    font-weight:700;
+}
+#app{display:flex;height:100vh}
+aside{
+    width:220px;
+    background:#020617;
+    padding:10px;
+}
+aside button{
+    width:100%;
+    padding:10px;
+    margin:4px 0;
+    background:#020617;
+    border:0;
+    color:#e5e7eb;
+    text-align:left;
+    cursor:pointer;
+}
+aside button:hover{background:#1e293b}
 
-    header {
-      background: #151932;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      border-bottom: 2px solid var(--c-border);
-    }
+main{flex:1;padding:20px}
 
-    .logo {
-      font-size: 1.8rem;
-      font-weight: bold;
-      background: linear-gradient(135deg, var(--c-accent), #a29bfe);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      cursor: pointer;
-    }
+.hidden{display:none}
 
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
+.card{
+    background:#020617;
+    padding:16px;
+    border-radius:8px;
+    margin-bottom:16px;
+}
 
-    nav button {
-      background: var(--c-accent);
-      border: none;
-      padding: 0.6rem 1rem;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
-    }
+button.primary{background:#22c55e;color:#000}
+button.danger{background:#ef4444}
+button{padding:8px 14px;border:0;border-radius:4px;font-weight:600}
 
-    nav button:hover {
-      background: var(--c-accent-hover);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    .card {
-      background: var(--c-card);
-      border-radius: 16px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      border: 1px solid var(--c-border);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      color: var(--c-accent);
-    }
-
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0 20px 0;
-      background: #151932;
-      border: 1px solid var(--c-border);
-      border-radius: 8px;
-      color: white;
-      box-sizing: border-box;
-    }
-
-    textarea { min-height: 100px; resize: vertical; }
-
-    .btn-gen {
-      background: #2ecc71;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .btn-gen:hover { background: #27ae60; }
-
-    .content-section { display: none; }
-    .content-section.active { display: block; animation: fadeIn 0.3s ease; }
-
-    .highlight {
-      background: rgba(108, 92, 231, 0.3);
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-    }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .copy-btn {
-      background: #444;
-      border: none;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-  </style>
+#console{
+    background:#000;
+    color:#0f0;
+    padding:10px;
+    height:300px;
+    overflow:auto;
+    font-family:monospace;
+}
+input{
+    width:100%;
+    padding:8px;
+    margin:6px 0;
+}
+</style>
 </head>
+
 <body>
 
-  <header>
-    <div class="logo" onclick="switchTab('dashboard')">🐟 DorszHub</div>
-    <nav>
-      <button onclick="switchTab('plugins')">🔌 Pluginy</button>
-      <button onclick="switchTab('scripts')">📜 Skrypty</button>
-      <button onclick="switchTab('bots')">🤖 Boty</button>
-      <button onclick="switchTab('gui')">🎨 GUI</button>
-      <button onclick="switchTab('config')">⚙️ Config</button>
-    </nav>
-  </header>
+<header>🟩 Minecraft Hosting Panel</header>
 
-  <div class="container">
-    
-    <div id="dashboard" class="content-section active">
-      <div class="card">
-        <h2>🏠 Witaj w DorszHub!</h2>
-        <p>To narzędzie pozwala Ci błyskawicznie tworzyć zasoby na Twój serwer Minecraft lub Discord.</p>
-        <ul>
-          <li>🔌 <b>Pluginy Minecraft</b> - Kod Java (Bukkit/Spigot)</li>
-          <li>📜 <b>Skrypty</b> - Skrypty do pluginu Skript</li>
-          <li>🤖 <b>Boty Discord</b> - Kod w JS lub Python</li>
-          <li>🎨 <b>GUI Builder</b> - Tworzenie menu w skrzynkach</li>
-          <li>⚙️ <b>Configi</b> - Pliki YAML i JSON</li>
-        </ul>
-        <p>Wybierz zakładkę z górnego menu, aby zacząć generowanie!</p>
-      </div>
-    </div>
+<div id="app">
+<aside>
+    <button onclick="view('servers')">Servers</button>
+    <button onclick="view('console')">Console</button>
+    <button onclick="view('settings')">Settings</button>
+    <button onclick="logout()">Logout</button>
+</aside>
 
-    <div id="plugins" class="content-section">
-      <div class="card">
-        <h2>🔌 Generator Pluginów (Java)</h2>
-        <label>Nazwa pluginu:</label>
-        <input type="text" id="pluginName" placeholder="Np. MojaKomenda">
-        <label>Co ma robić główna komenda?</label>
-        <textarea id="pluginDesc" placeholder="Np. Teleportuje gracza na spawn"></textarea>
-        <button class="btn-gen" onclick="generatePlugin()">⚡ Generuj Kod Java</button>
-        <h3 style="margin-top:20px;">Wynik:</h3>
-        <textarea id="pluginCode" readonly style="height: 200px; font-family: monospace;"></textarea>
-      </div>
-    </div>
+<main>
 
-    <div id="scripts" class="content-section">
-      <div class="card">
-        <h2>📜 Generator Skryptów (Skript)</h2>
-        <label>Nazwa komendy:</label>
-        <input type="text" id="scriptName" placeholder="Np. pomoc">
-        <label>Treść wiadomości:</label>
-        <textarea id="scriptDesc" placeholder="Np. To jest wiadomość pomocy!"></textarea>
-        <button class="btn-gen" onclick="generateScript()">⚡ Generuj Skrypt</button>
-        <h3 style="margin-top:20px;">Wynik:</h3>
-        <textarea id="scriptCode" readonly style="height: 150px; font-family: monospace;"></textarea>
-      </div>
-    </div>
+<!-- LOGIN -->
+<div id="login" class="card">
+<h2>Login</h2>
+<input id="email" placeholder="email">
+<input id="password" type="password" placeholder="password">
+<button class="primary" onclick="login()">LOGIN</button>
+</div>
 
-    <div id="gui" class="content-section">
-      <div class="card">
-        <h2>🎨 GUI Builder</h2>
-        <label>Nazwa menu:</label>
-        <input type="text" id="guiName" placeholder="Menu Główne">
-        <label>Liczba slotów (9-54):</label>
-        <input type="number" id="guiSlots" value="27">
-        <label>Przedmioty (oddziel przecinkiem):</label>
-        <input type="text" id="guiItems" placeholder="DIAMOND, GOLD_INGOT, EMERALD">
-        <button class="btn-gen" onclick="generateGUI()">⚡ Generuj GUI</button>
-        <h3 style="margin-top:20px;">Wynik:</h3>
-        <textarea id="guiCode" readonly style="height: 200px; font-family: monospace;"></textarea>
-      </div>
-    </div>
+<!-- SERVERS -->
+<div id="servers" class="card hidden">
+<h2>Your Servers</h2>
+<div id="serverList"></div>
+</div>
 
-    </div>
+<!-- CONSOLE -->
+<div id="consoleView" class="card hidden">
+<h2>Console</h2>
+<button class="primary" onclick="action('start')">START</button>
+<button onclick="action('stop')">STOP</button>
+<button onclick="action('restart')">RESTART</button>
+<button class="danger" onclick="action('kill')">KILL</button>
+<pre id="console"></pre>
+</div>
 
-  <script>
-    function switchTab(tabId) {
-      document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-    }
+<!-- SETTINGS -->
+<div id="settings" class="card hidden">
+<h2>Account</h2>
+<p>Subusers, limity, plany – backend</p>
+</div>
 
-    function generatePlugin() {
-      const name = document.getElementById("pluginName").value || "DorszPlugin";
-      const desc = document.getElementById("pluginDesc").value || "Wykonano akcję!";
-      const code = `package com.dorszhub.plugin;
+</main>
+</div>
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+<script>
+const API = "https://TWOJ-VPS-IP:3000"; // <- ZMIENISZ
+let token = localStorage.getItem("token");
+let currentServer = null;
 
-public class ${name} extends JavaPlugin implements CommandExecutor {
-    @Override
-    public void onEnable() {
-        getCommand("${name.toLowerCase()}").setExecutor(this);
-    }
+function view(id){
+    document.querySelectorAll('.card').forEach(x=>x.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            p.sendMessage("§a[DorszHub] §f${desc}");
-        }
-        return true;
-    }
-}`;
-      document.getElementById("pluginCode").value = code;
-    }
+function login(){
+    fetch(API+"/login",{
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            email:email.value,
+            password:password.value
+        })
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        token=d.token;
+        localStorage.setItem("token",token);
+        loadServers();
+        view('servers');
+    });
+}
 
-    function generateScript() {
-      const name = document.getElementById("scriptName").value || "komenda";
-      const msg = document.getElementById("scriptDesc").value || "Wiadomość";
-      const code = `command /${name.toLowerCase()}:
-    trigger:
-        send "&6&lDorszHub &8» &f${msg}"
-        play sound "entity.experience_orb.pickup" to player`;
-      document.getElementById("scriptCode").value = code;
-    }
+function logout(){
+    localStorage.removeItem("token");
+    location.reload();
+}
 
-    function generateGUI() {
-      const name = document.getElementById("guiName").value || "Menu";
-      const slots = document.getElementById("guiSlots").value || 27;
-      const items = document.getElementById("guiItems").value.split(",");
-      
-      let itemCode = "";
-      items.forEach((item, index) => {
-        if(item.trim() !== "") {
-            itemCode += `    inv.setItem(${index}, new ItemStack(Material.${item.trim().toUpperCase()}));\n`;
-        }
-      });
+function loadServers(){
+    fetch(API+"/servers",{
+        headers:{Authorization:"Bearer "+token}
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        const s=document.getElementById('serverList');
+        s.innerHTML='';
+        d.forEach(x=>{
+            const div=document.createElement('div');
+            div.innerHTML=`
+                <b>${x.name}</b><br>
+                RAM: ${x.ram}MB<br>
+                <button onclick="openConsole('${x.id}')">OPEN</button>
+            `;
+            s.appendChild(div);
+        });
+    });
+}
 
-      const code = `public void openGUI(Player player) {
-    Inventory inv = Bukkit.createInventory(null, ${slots}, "§0${name}");
-${itemCode}
-    player.openInventory(inv);
-}`;
-      document.getElementById("guiCode").value = code;
-    }
-  </script>
+function openConsole(id){
+    currentServer=id;
+    view('consoleView');
+    loadConsole();
+}
+
+function action(a){
+    fetch(API+`/servers/${currentServer}/${a}`,{
+        method:"POST",
+        headers:{Authorization:"Bearer "+token}
+    });
+}
+
+function loadConsole(){
+    fetch(API+`/servers/${currentServer}/logs`,{
+        headers:{Authorization:"Bearer "+token}
+    })
+    .then(r=>r.text())
+    .then(t=>{
+        console.textContent=t;
+        setTimeout(loadConsole,2000);
+    });
+}
+
+if(token){
+    loadServers();
+    view('servers');
+}
+</script>
+
 </body>
 </html>
