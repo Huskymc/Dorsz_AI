@@ -201,3 +201,55 @@ const plusBtn=document.getElementById("plus");
 
 function addMsg(from,text){
   const d=document.createElement("div");
+  d.className="msg "+from;
+  if(from==="ai"){
+    d.innerHTML=`<div class="ai">${text}<button class="copy">📋</button></div>`;
+    d.querySelector(".copy").onclick=()=>navigator.clipboard.writeText(text);
+  }else{
+    d.textContent=text;
+  }
+  chatEl.appendChild(d);
+  chatEl.scrollTop=chatEl.scrollHeight;
+}
+
+function generateImage(){
+  const c=document.createElement("canvas");
+  c.width=360;c.height=180;
+  const x=c.getContext("2d");
+  x.fillStyle="#333";x.fillRect(0,0,c.width,c.height);
+  x.fillStyle="#fff";x.font="18px Arial";
+  x.fillText("Obraz wygenerowany przez Dorsza 1.0",10,90);
+  const wrap=document.createElement("div");
+  wrap.className="canvasWrap";
+  wrap.appendChild(c);
+  chatEl.appendChild(wrap);
+}
+
+function dorszLogic(text){
+  if(text.match(/<|function|var|let|const/))
+    return "Przeanalizowałem kod. Składnia jest poprawna, ale można poprawić czytelność i zabezpieczenia.";
+  if(text.toLowerCase().includes("obraz")){
+    generateImage();
+    return "Wygenerowałem obraz lokalnie.";
+  }
+  return `Analizuję: "${text}". Jestem gotów naprawić kod, stworzyć plugin, HTML albo skrypt.`;
+}
+
+sendBtn.onclick=send;
+input.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+
+function send(){
+  const t=input.value.trim();
+  if(!t)return;
+  addMsg("user",t);
+  input.value="";
+  setTimeout(()=>addMsg("ai",dorszLogic(t)),200);
+}
+
+plusBtn.onclick=()=>{
+  const a=prompt("1 – nowy czat | 2 – obraz | 3 – plik");
+  if(a==="2")generateImage();
+}
+</script>
+</body>
+</html>
