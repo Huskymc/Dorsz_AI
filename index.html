@@ -3,169 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <title>Dorsz 1.0</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Arial}
-#app{display:flex;height:100%}
-
-/* SIDEBAR */
-#sidebar{width:270px;background:#151515;border-right:1px solid #2a2a2a;display:flex;flex-direction:column;transition:.25s}
-#sidebar.collapsed{width:60px}
-#logo{padding:16px;font-size:22px;font-weight:800;color:#4fc3f7;text-align:center}
-.sideBtn{display:flex;gap:10px;padding:12px 16px;cursor:pointer}
-.sideBtn:hover{background:#1f1f1f}
-#chatList{flex:1;overflow-y:auto}
-.chatItem{padding:10px 16px;border-bottom:1px solid #1f1f1f;cursor:pointer}
-.chatItem.active{background:#1f1f1f}
-#collapse{padding:12px;text-align:center;cursor:pointer}
-
-/* MAIN */
-#main{flex:1;display:flex;flex-direction:column}
-#topbar{height:50px;border-bottom:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
-#topActions button{margin-left:6px;background:#222;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
-#chat{flex:1;padding:20px;overflow-y:auto}
-.msg{margin-bottom:14px}
-.user{color:#4fc3f7}
-.ai{background:#1b1b1b;padding:12px;border-radius:10px;position:relative}
-.copy{position:absolute;top:6px;right:8px;background:none;border:none;color:#aaa;cursor:pointer}
-
-/* INPUT */
-#inputBar{border-top:1px solid #2a2a2a;padding:10px;display:flex;gap:8px}
-#plus{width:42px;height:42px;border-radius:50%;border:none;background:#4fc3f7;font-size:22px;cursor:pointer}
-#input{flex:1;background:#1f1f1f;border:none;border-radius:10px;padding:12px;color:#fff;font-size:16px}
-#send{background:#4fc3f7;border:none;border-radius:10px;padding:0 18px;cursor:pointer;font-weight:700}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: #fff;
+  display: flex;
+  height: 100vh;
+}
+#sidebar {
+  width: 260px;
+  background: #171717;
+  padding: 10px;
+}
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+#chat {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+.msg {
+  margin-bottom: 10px;
+}
+.user { color: #4da3ff; }
+.assistant { color: #7dff7d; }
+#inputBar {
+  display: flex;
+  border-top: 1px solid #333;
+}
+#input {
+  flex: 1;
+  padding: 10px;
+  background: #111;
+  color: #fff;
+  border: none;
+  outline: none;
+}
+button {
+  background: #2b2b2b;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+button:hover {
+  background: #3a3a3a;
+}
 </style>
 </head>
-
 <body>
-<div id="app">
 
 <div id="sidebar">
-  <div id="logo">🐟 Dorsz</div>
-  <div class="sideBtn" onclick="newChat()">➕ Nowy czat</div>
-  <div class="sideBtn" onclick="setMode('chat')">💬 Czat</div>
-  <div class="sideBtn" onclick="setMode('image')">🖼️ Obrazy</div>
-  <div id="chatList"></div>
-  <div id="collapse" onclick="toggleSidebar()">⬅️</div>
+  <h3>🐟 Dorsz</h3>
+  <button onclick="newChat()">➕ Nowy chat</button>
 </div>
 
 <div id="main">
-  <div id="topbar">
-    <div>Dorsz 1.0</div>
-    <div id="topActions">
-      <button onclick="alert('Udostępnianie')">Udostępnij</button>
-      <button onclick="alert('Dodaj osobę')">Dodaj</button>
-      <button onclick="alert('Menu czatu')">⋮</button>
-    </div>
-  </div>
-
   <div id="chat"></div>
 
   <div id="inputBar">
-    <button id="plus" onclick="plusMenu()">+</button>
-    <input id="input" placeholder="Napisz do Dorsza...">
-    <button id="send" onclick="send()">Wyślij</button>
+    <input id="input" placeholder="Napisz wiadomość…" />
+    <button onclick="send()">Wyślij</button>
   </div>
-</div>
 </div>
 
 <script>
-let chats=JSON.parse(localStorage.getItem("dorsz_chats")||"[]");
-let current=0;
-let mode="chat";
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
 
-if(chats.length===0){
-  chats.push({name:"Czat 1",msgs:[]});
-  save();
-}
-
-function save(){localStorage.setItem("dorsz_chats",JSON.stringify(chats))}
-function renderChats(){
-  const l=document.getElementById("chatList");
-  l.innerHTML="";
-  chats.forEach((c,i)=>{
-    const d=document.createElement("div");
-    d.className="chatItem"+(i===current?" active":"");
-    d.textContent=c.name;
-    d.onclick=()=>{current=i;renderChats();renderChat()};
-    l.appendChild(d);
-  });
-}
-
-function renderChat(){
-  const c=document.getElementById("chat");
-  c.innerHTML="";
-  chats[current].msgs.forEach(m=>{
-    const d=document.createElement("div");
-    d.className="msg "+m.from;
-    if(m.from==="ai"){
-      d.innerHTML=`<div class="ai">${m.text}<button class="copy">📋</button></div>`;
-      d.querySelector(".copy").onclick=()=>navigator.clipboard.writeText(m.text);
-    } else d.textContent=m.text;
-    c.appendChild(d);
-  });
-  c.scrollTop=c.scrollHeight;
-}
-
-function addMsg(from,text){
-  chats[current].msgs.push({from,text});
-  save();renderChat();
-}
-
-function send(){
-  const i=document.getElementById("input");
-  const t=i.value.trim();
-  if(!t)return;
-  i.value="";
-  addMsg("user",t);
-  setTimeout(()=>addMsg("ai",logic(t)),150);
-}
-
-document.getElementById("input").addEventListener("keydown",e=>{
-  if(e.key==="Enter")send();
+// ENTER DZIAŁA
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    send();
+  }
 });
 
-function logic(t){
-  if(mode==="image"){generateImage();return "Wygenerowałem obraz.";}
-  if(t.match(/<|function|class|var|let|const/))
-    return "Kod przeanalizowany. Mogę go poprawić lub rozwinąć.";
-  return `Rozumiem: "${t}". Co dalej robimy?`;
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.textContent = (role === "user" ? "Ty: " : "Dorsz: ") + text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
-function generateImage(){
-  const c=document.createElement("canvas");
-  c.width=360;c.height=180;
-  const x=c.getContext("2d");
-  x.fillStyle="#333";x.fillRect(0,0,c.width,c.height);
-  x.fillStyle="#fff";x.font="18px Arial";
-  x.fillText("Obraz – Dorsz 1.0",20,90);
-  document.getElementById("chat").appendChild(c);
+function send() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage("user", text);
+  input.value = "";
+
+  fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  })
+  .then(res => res.json())
+  .then(data => {
+    addMessage("assistant", data.reply);
+  })
+  .catch(() => {
+    addMessage("assistant", "Błąd serwera.");
+  });
 }
 
-function newChat(){
-  chats.push({name:"Czat "+(chats.length+1),msgs:[]});
-  current=chats.length-1;
-  save();renderChats();renderChat();
+function newChat() {
+  chat.innerHTML = "";
+  addMessage("assistant", "Nowy chat. W czym mogę pomóc?");
 }
-
-function setMode(m){
-  mode=m;
-  addMsg("ai","Tryb: "+(m==="image"?"Obrazy":"Czat"));
-}
-
-function plusMenu(){
-  const a=prompt("1 – nowy czat\n2 – obraz");
-  if(a==="1")newChat();
-  if(a==="2"){mode="image";addMsg("ai","Tryb obrazy aktywny");}
-}
-
-function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("collapsed");
-}
-
-renderChats();
-renderChat();
 </script>
+
 </body>
 </html>
