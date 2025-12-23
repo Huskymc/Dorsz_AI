@@ -2,27 +2,71 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 4.0 – Miły Programista 50Y</title>
+<title>Dorsz 5.0 – Miły Programista 50Y</title>
 <style>
-body { background:#0e0e0e; color:#fff; font-family:Arial; }
-#chat { max-width:800px; margin:30px auto; padding:10px; height:500px; border:1px solid #444; overflow-y:auto; background:#1a1a1a; }
-.msg { margin:10px 0; line-height:1.4; }
-.user { color:#4fc3f7; }
-.ai { color:#81c784; white-space:pre-wrap; }
-input { width:75%; padding:10px; margin-right:5px; border-radius:4px; border:none; }
-button { padding:10px 15px; border-radius:4px; border:none; background:#4fc3f7; color:#000; cursor:pointer; }
-button:hover { background:#36a0d1; }
+  body {
+    margin:0; padding:0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background-color: #111;
+    color: #eee;
+  }
+  #container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #1c1c1c;
+    border-bottom: 1px solid #333;
+  }
+  .msg { margin:10px 0; line-height:1.5; }
+  .user { color:#4fc3f7; }
+  .ai { color:#81c784; white-space:pre-wrap; background:#222; padding:10px; border-radius:6px; }
+  #input-container {
+    display: flex;
+    padding: 10px;
+    background: #1c1c1c;
+    border-top: 1px solid #333;
+  }
+  input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 6px;
+    border:none;
+    margin-right:10px;
+    font-size:16px;
+    background:#2c2c2c;
+    color:#fff;
+  }
+  button {
+    padding:12px 18px;
+    border-radius:6px;
+    border:none;
+    background:#4fc3f7;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+  }
+  button:hover { background:#36a0d1; }
 </style>
 </head>
 <body>
-
-<div id="chat"></div>
-<input id="input" placeholder="Opisz problem lub wklej kod..." />
-<button onclick="send()">Wyślij</button>
+<div id="container">
+  <div id="chat"></div>
+  <div id="input-container">
+    <input id="input" placeholder="Wklej kod lub opisz problem..." />
+    <button onclick="send()">Wyślij</button>
+  </div>
+</div>
 
 <script>
 // ==================
-// STAN DORSZA
+// STAN DORSZA 5.0
 // ==================
 const DORSZ = {
   mode: "help", // help | normal | admin
@@ -30,14 +74,14 @@ const DORSZ = {
 };
 
 // ==================
-// FUNKCJA POMOCY
+// FUNKCJA PRZETWARZAJĄCA WIADOMOŚĆ
 // ==================
 function processMessage(text) {
   text = text.trim();
   DORSZ.memory.push(text);
 
-  // KOMENDY
-  if(text === "/status") return `Dorsz 4.0: Tryb ${DORSZ.mode}, gotowy do pomocy.`;
+  // KOMENDY SYSTEMOWE
+  if(text === "/status") return `Dorsz 5.0: Tryb ${DORSZ.mode}, gotowy do pomocy.`;
   if(text === "/help") return "Komendy: /status /help /mode";
   if(text.startsWith("/mode")) {
     const parts = text.split(" ");
@@ -47,7 +91,7 @@ function processMessage(text) {
     } else return "Dostępne tryby: help, normal, admin";
   }
 
-  // LOGIKA POMOCY
+  // Główna logika
   if(DORSZ.mode === "help") return handleHelpMode(text);
   if(DORSZ.mode === "normal") return handleNormalMode(text);
   if(DORSZ.mode === "admin") return handleAdminMode(text);
@@ -61,29 +105,29 @@ function processMessage(text) {
 function handleHelpMode(text) {
   const lower = text.toLowerCase();
 
-  // JS/HTML
-  if(lower.includes("html") || lower.includes("js")) {
-    return `Widzę, że chcesz użyć JS/HTML. Oto działający przykład:\n\n<!DOCTYPE html>\n<html>\n<body>\n<button onclick="alert('Dorsz działa!')">Kliknij</button>\n</body>\n</html>\n\nJeżeli coś w tym nie działa, wklej swój kod, a poprawię go krok po kroku.`;
+  // JS/HTML/CSS
+  if(lower.includes("html") || lower.includes("js") || lower.includes("css")) {
+    return `Widzę, że chcesz użyć JS/HTML/CSS. Oto przykład działający i poprawny:\n\n<!DOCTYPE html>\n<html>\n<body>\n<button onclick="alert('Dorsz 5.0 działa!')">Kliknij</button>\n</body>\n</html>\n\nJeżeli wkleisz swój kod, poprawię go krok po kroku i wyjaśnię zmiany w miły sposób.`;
   }
 
-  // MC Plugin / JAR
+  // Minecraft / Plugin / JAR
   if(lower.includes("minecraft") || lower.includes("mc") || lower.includes("jar")) {
-    return "Dorsz 4.0: Podaj wersję serwera i fragment kodu pluginu, a poprawię go bez błędów i wyjaśnię krok po kroku.";
+    return "Dorsz 5.0: Podaj wersję serwera i fragment kodu pluginu (Java lub dekompilowany JAR), a poprawię go bez błędów i wyjaśnię krok po kroku.";
   }
 
   // Naprawa kodu
   if(lower.includes("napraw") || lower.includes("error") || lower.includes("błąd")) {
-    return "Wklej fragment kodu, a Dorsz 4.0 sprawdzi, poprawi i wyjaśni każdą zmianę.";
+    return "Wklej fragment kodu, a Dorsz 5.0 sprawdzi go, poprawi i wyjaśni wszystkie zmiany w miły sposób.";
   }
 
-  return "Nie mogę rozpoznać problemu w pełni. Proszę podać więcej szczegółów lub fragment kodu.";
+  return "Nie mogę rozpoznać problemu w pełni. Podaj więcej szczegółów lub fragment kodu.";
 }
 
 // ==================
 // TRYB NORMALNY – szybkie wskazówki
 // ==================
 function handleNormalMode(text) {
-  if(text.toLowerCase().includes("cześć")) return "Cześć! Napisz dokładnie, w czym mogę pomóc.";
+  if(text.toLowerCase().includes("cześć")) return "Cześć! Napisz dokładnie, w czym mogę Ci pomóc.";
   return "Nie rozumiem. Użyj /help, aby zobaczyć dostępne komendy.";
 }
 
@@ -98,7 +142,7 @@ function handleAdminMode(text) {
 }
 
 // ==================
-// INTERFEJS
+// INTERFEJS CZATU
 // ==================
 function send() {
   const input = document.getElementById("input");
@@ -116,6 +160,5 @@ function send() {
   chat.scrollTop = chat.scrollHeight;
 }
 </script>
-
 </body>
 </html>
