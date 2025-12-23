@@ -124,4 +124,109 @@ function renderChat() {
     const div = document.createElement("div");
     div.className = "msg "+(m.from==="user"?"user":"ai");
     if(m.from==="ai"){
-      const textDi
+      const textDiv = document.createElement("div");
+      textDiv.textContent = m.text;
+      const copyBtn = document.createElement("button");
+      copyBtn.textContent="📋 Kopiuj";
+      copyBtn.className="copyBtn";
+      copyBtn.onclick=()=>{navigator.clipboard.writeText(m.text).then(()=>{copyBtn.textContent="✅ Skopiowano!"; setTimeout(()=>copyBtn.textContent="📋 Kopiuj",1000);})};
+      div.appendChild(textDiv);
+      div.appendChild(copyBtn);
+    } else div.textContent = m.text;
+    chatElem.appendChild(div);
+  });
+  chatElem.scrollTop = chatElem.scrollHeight;
+}
+
+// ===== WIADOMOŚCI =====
+function addMessage(from,text){if(currentChatIndex===null)newChat();chats[currentChatIndex].messages.push({from,text});renderChat();saveChats();}
+
+// ===== LOGIKA DORSZA 1.0 =====
+function processMessage(text){
+  // Analiza każdej wiadomości indywidualnie
+  let reply="";
+  if(text.trim()==="") return "Nie otrzymałem żadnej wiadomości.";
+  
+  if(text.includes("kod") || text.includes("function") || text.includes("<html")){
+    // Symulacja analizy kodu i poprawki
+    reply="Analizuję Twój kod...\n";
+    setTimeout(()=>{},100); // symulacja przetwarzania
+    reply+="Wygląda poprawnie, ewentualnie dodaj średniki i sprawdź składnię.\n";
+    return reply;
+  }
+  
+  if(text.includes("stwórz obraz")||text.includes("generuj obraz")){
+    generateImage();
+    return "🌄 Obraz został wygenerowany (lokalny placeholder)";
+  }
+  
+  // Normalna wiadomość
+  reply="Analizuję Twoją wiadomość: \""+text+"\"\nSugestia: mogę sprawdzić kod lub wygenerować obraz.";
+  return reply;
+}
+
+// ===== WYSYŁANIE =====
+function send(){
+  const inp=document.getElementById("input");
+  const txt=inp.value.trim();
+  if(!txt)return;
+  addMessage("user",txt);
+  inp.value="";
+  const reply=processMessage(txt);
+  addMessage("ai",reply);
+  speak(reply);
+}
+
+// ===== TTS =====
+function speak(text){
+  try {
+    const utterance=new SpeechSynthesisUtterance(text);
+    utterance.lang='pl-PL'; utterance.rate=1;
+    speechSynthesis.speak(utterance);
+  } catch(e){console.warn("TTS nie działa w tej przeglądarce");}
+}
+
+// ===== STT =====
+function startDictation(){
+  try {
+    if(!('webkitSpeechRecognition' in window)){alert("Twoja przeglądarka nie wspiera rozpoznawania mowy."); return;}
+    const recognition=new webkitSpeechRecognition();
+    recognition.lang='pl-PL';
+    recognition.interimResults=false;
+    recognition.onresult=function(e){document.getElementById('input').value=e.results[0][0].transcript;};
+    recognition.start();
+  } catch(e){alert("Rozpoznawanie mowy nie działa w tej przeglądarce");}
+}
+
+// ===== PLIKI =====
+document.getElementById('fileInput').addEventListener('change',function(e){
+  const file=e.target.files[0];
+  const reader=new FileReader();
+  reader.onload=function(){
+    const content=reader.result;
+    addMessage("user",`Plik załadowany: ${file.name}`);
+    addMessage("ai","Oto zawartość pliku:\n"+content.substring(0,1000)+"\n(...)");
+  };
+  reader.readAsText(file);
+});
+
+// ===== GENEROWANIE OBRAZU LOKALNIE =====
+function generateImage(){
+  const canvas = document.createElement("canvas");
+  canvas.width=400; canvas.height=200;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#444"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#fff"; ctx.font="20px Arial"; ctx.fillText("Obraz wygenerowany przez Dorsza 1.0",10,50);
+  const output=document.getElementById("imageOutput");
+  output.innerHTML="";
+  output.appendChild(canvas);
+}
+
+// ===== INIT =====
+refreshChatList(); renderChat();
+
+});
+</script>
+
+</body>
+</html>
