@@ -6,61 +6,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Arial}
 
 #app{display:flex;height:100%}
 
 /* SIDEBAR */
 #sidebar{
-  width:260px;
+  width:270px;
   background:#151515;
   border-right:1px solid #2a2a2a;
   display:flex;
   flex-direction:column;
-  transition:.3s;
+  transition:.25s;
 }
 #sidebar.collapsed{width:60px}
 
 #logo{
-  padding:14px;
-  font-size:20px;
-  font-weight:700;
-  text-align:center;
+  padding:16px;
+  font-size:22px;
+  font-weight:800;
   color:#4fc3f7;
+  text-align:center;
 }
 
-#newChat{
-  margin:10px;
-  padding:10px;
-  background:#4fc3f7;
-  border:none;
-  border-radius:8px;
-  font-weight:600;
+.sideBtn{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
   cursor:pointer;
-  color:#000;
+  color:#ddd;
+  font-size:15px;
+}
+.sideBtn:hover{background:#1f1f1f}
+.icon{width:22px;text-align:center}
+
+#sectionTitle{
+  padding:10px 16px;
+  font-size:12px;
+  color:#888;
 }
 
-#search{
-  margin:10px;
-  padding:8px;
-  border-radius:6px;
-  border:none;
-  background:#222;
-  color:#fff;
-}
-
-#chatList{
-  flex:1;
-  overflow-y:auto;
-}
+#chatList{flex:1;overflow-y:auto}
 
 .chatItem{
-  padding:10px 14px;
+  padding:10px 16px;
   cursor:pointer;
   border-bottom:1px solid #1f1f1f;
 }
 .chatItem:hover{background:#1f1f1f}
+
+#collapse{
+  padding:12px;
+  border-top:1px solid #2a2a2a;
+  cursor:pointer;
+  text-align:center;
+}
 
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column}
@@ -70,9 +72,9 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
   height:50px;
   border-bottom:1px solid #2a2a2a;
   display:flex;
-  align-items:center;
   justify-content:space-between;
-  padding:0 15px;
+  align-items:center;
+  padding:0 16px;
 }
 
 #topActions button{
@@ -94,6 +96,7 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
 
 .msg{margin-bottom:14px}
 .user{color:#4fc3f7}
+
 .ai{
   background:#1b1b1b;
   padding:12px;
@@ -119,14 +122,14 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
 }
 
 #plus{
-  background:#4fc3f7;
-  border:none;
-  border-radius:50%;
   width:42px;
   height:42px;
+  border-radius:50%;
+  border:none;
+  background:#4fc3f7;
+  color:#000;
   font-size:22px;
   cursor:pointer;
-  color:#000;
 }
 
 #input{
@@ -148,11 +151,6 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
   font-weight:700;
   color:#000;
 }
-
-/* IMAGE */
-.canvasWrap{
-  margin-top:10px;
-}
 </style>
 </head>
 
@@ -162,15 +160,21 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div id="logo">🐟 Dorsz</div>
-  <button id="newChat">+ Nowy czat</button>
-  <input id="search" placeholder="Szukaj czatu">
+
+  <div class="sideBtn" onclick="newChat()"><span class="icon">➕</span> Nowy czat</div>
+  <div class="sideBtn"><span class="icon">🔍</span> Wyszukaj</div>
+  <div class="sideBtn" onclick="setMode('image')"><span class="icon">🖼️</span> Obrazy</div>
+  <div class="sideBtn"><span class="icon">🧩</span> Aplikacje</div>
+
+  <div id="sectionTitle">TWOJE CZATY</div>
   <div id="chatList"></div>
+
+  <div id="collapse" onclick="toggleSidebar()">⬅️</div>
 </div>
 
 <!-- MAIN -->
 <div id="main">
 
-<!-- TOP BAR -->
 <div id="topbar">
   <div>Dorsz 1.0</div>
   <div id="topActions">
@@ -180,10 +184,8 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
   </div>
 </div>
 
-<!-- CHAT -->
 <div id="chat"></div>
 
-<!-- INPUT -->
 <div id="inputBar">
   <button id="plus">+</button>
   <input id="input" placeholder="Napisz do Dorsza...">
@@ -194,10 +196,9 @@ html,body{height:100%;background:#0f0f0f;color:#eaeaea;font-family:Segoe UI,Aria
 </div>
 
 <script>
-const chatEl=document.getElementById("chat");
+let mode="chat";
+const chat=document.getElementById("chat");
 const input=document.getElementById("input");
-const sendBtn=document.getElementById("send");
-const plusBtn=document.getElementById("plus");
 
 function addMsg(from,text){
   const d=document.createElement("div");
@@ -205,11 +206,19 @@ function addMsg(from,text){
   if(from==="ai"){
     d.innerHTML=`<div class="ai">${text}<button class="copy">📋</button></div>`;
     d.querySelector(".copy").onclick=()=>navigator.clipboard.writeText(text);
-  }else{
-    d.textContent=text;
+  } else d.textContent=text;
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function dorszLogic(t){
+  if(mode==="image"){
+    generateImage();
+    return "Tryb obrazów aktywny – wygenerowałem grafikę.";
   }
-  chatEl.appendChild(d);
-  chatEl.scrollTop=chatEl.scrollHeight;
+  if(t.match(/<|function|class|var|let|const/))
+    return "Kod przeanalizowany. Struktura poprawna, mogę go ulepszyć lub naprawić.";
+  return `Rozumiem: "${t}". Jestem gotów działać.`;
 }
 
 function generateImage(){
@@ -218,38 +227,14 @@ function generateImage(){
   const x=c.getContext("2d");
   x.fillStyle="#333";x.fillRect(0,0,c.width,c.height);
   x.fillStyle="#fff";x.font="18px Arial";
-  x.fillText("Obraz wygenerowany przez Dorsza 1.0",10,90);
-  const wrap=document.createElement("div");
-  wrap.className="canvasWrap";
-  wrap.appendChild(c);
-  chatEl.appendChild(wrap);
+  x.fillText("Obraz – Dorsz 1.0",20,90);
+  chat.appendChild(c);
 }
 
-function dorszLogic(text){
-  if(text.match(/<|function|var|let|const/))
-    return "Przeanalizowałem kod. Składnia jest poprawna, ale można poprawić czytelność i zabezpieczenia.";
-  if(text.toLowerCase().includes("obraz")){
-    generateImage();
-    return "Wygenerowałem obraz lokalnie.";
-  }
-  return `Analizuję: "${text}". Jestem gotów naprawić kod, stworzyć plugin, HTML albo skrypt.`;
-}
-
-sendBtn.onclick=send;
+document.getElementById("send").onclick=send;
 input.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
 
 function send(){
   const t=input.value.trim();
   if(!t)return;
   addMsg("user",t);
-  input.value="";
-  setTimeout(()=>addMsg("ai",dorszLogic(t)),200);
-}
-
-plusBtn.onclick=()=>{
-  const a=prompt("1 – nowy czat | 2 – obraz | 3 – plik");
-  if(a==="2")generateImage();
-}
-</script>
-</body>
-</html>
