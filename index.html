@@ -22,4 +22,149 @@ body, html { width:100%; height:100%; font-family:Arial,sans-serif; background:#
 #chat { flex:1; padding:20px; overflow-y:auto; }
 .msg { margin:8px 0; line-height:1.5; }
 .user { color:#4fc3f7; }
-.ai { color:#81c784; white-space:pre-wrap; background:#222; padding:10px; border-radius:6px; pos
+.ai { color:#81c784; white-space:pre-wrap; background:#222; padding:10px; border-radius:6px; position:relative; }
+.ai button.copyBtn { position:absolute; top:8px; right:8px; font-size:12px; padding:2px 6px; border:none; border-radius:4px; cursor:pointer; }
+#input-container { display:flex; padding:10px; background:#1c1c1c; border-top:1px solid #333; }
+#input { flex:1; padding:12px; border:none; border-radius:6px; background:#2a2a2a; color:#fff; font-size:16px; }
+#send { padding:12px 18px; background:#4fc3f7; border:none; border-radius:6px; margin-left:10px; color:#000; font-weight:bold; cursor:pointer; }
+#send:hover { background:#36a0d1; }
+#voiceBtn { margin-left:10px; background:#81c784; color:#000; border:none; border-radius:6px; padding:12px; cursor:pointer; }
+#fileInput { margin-left:10px; padding:8px; border-radius:6px; border:none; background:#2a2a2a; color:#fff; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="top">
+    <div class="logo">D</div>
+    <button class="collapseBtn" onclick="toggleSidebar()">⬅️</button>
+  </div>
+  <button class="addBtn" onclick="newChat()">+ Nowy Chat / Plik</button>
+  <input type="text" id="searchChats" placeholder="🔍 Szukaj czatów" oninput="filterChats()">
+  <div id="chatList"></div>
+  <div id="profile">
+    <div>Profil użytkownika</div>
+    <div class="actions">
+      <button onclick="alert('Udostępnij')">Udostępnij</button>
+      <button onclick="alert('Dodaj osobę')">Dodaj</button>
+      <button onclick="alert('Menu')">⋮</button>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="chat"></div>
+  <div id="input-container">
+    <input id="input" placeholder="Wpisz wiadomość..." onkeydown="if(event.key==='Enter'){send();}">
+    <button id="send" onclick="send()">Wyślij</button>
+    <button id="voiceBtn" onclick="startDictation()">🎤</button>
+    <input type="file" id="fileInput">
+  </div>
+</div>
+
+<script>
+// ===== DANE =====
+let chats = JSON.parse(localStorage.getItem("dorszChats") || "[]");
+let currentChatIndex = null;
+
+// ===== SIDEBAR =====
+function refreshChatList() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  chats.forEach((chat, index) => {
+    const btn = document.createElement("button");
+    btn.className = "chatBtn";
+    btn.textContent = chat.title;
+    btn.onclick = () => loadChat(index);
+    list.appendChild(btn);
+  });
+}
+
+function newChat() {
+  const title = prompt("Nazwa czatu:") || ("Czat " + (chats.length+1));
+  chats.push({ title, messages: [] });
+  currentChatIndex = chats.length-1;
+  saveChats();
+  refreshChatList();
+  renderChat();
+}
+
+function filterChats() {
+  const q = document.getElementById("searchChats").value.toLowerCase();
+  document.querySelectorAll("#chatList button").forEach(btn => {
+    btn.style.display = btn.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("collapsed");
+}
+
+function saveChats() { localStorage.setItem("dorszChats", JSON.stringify(chats)); }
+function loadChat(index) { currentChatIndex = index; renderChat(); }
+
+// ===== CHAT =====
+function renderChat() {
+  const chatElem = document.getElementById("chat");
+  chatElem.innerHTML = "";
+  if(currentChatIndex===null) return;
+  const msgs = chats[currentChatIndex].messages;
+  msgs.forEach(m=>{
+    const div = document.createElement("div");
+    div.className = "msg "+(m.from==="user"?"user":"ai");
+    if(m.from==="ai"){
+      const textDiv = document.createElement("div");
+      textDiv.textContent = m.text;
+      const copyBtn = document.createElement("button");
+      copyBtn.textContent="📋 Kopiuj";
+      copyBtn.className="copyBtn";
+      copyBtn.onclick=()=>{navigator.clipboard.writeText(m.text).then(()=>{copyBtn.textContent="✅ Skopiowano!"; setTimeout(()=>copyBtn.textContent="📋 Kopiuj",1000);})};
+      div.appendChild(textDiv);
+      div.appendChild(copyBtn);
+    } else div.textContent = m.text;
+    chatElem.appendChild(div);
+  });
+  chatElem.scrollTop = chatElem.scrollHeight;
+}
+
+// ===== WIADOMOŚCI =====
+function addMessage(from,text){if(currentChatIndex===null)newChat();chats[currentChatIndex].messages.push({from,text});renderChat();saveChats();}
+
+// ===== LOGIKA DORSZA =====
+function processMessage(text){
+  const l=text.toLowerCase().trim();
+  const greetings=["hej","cześć","witaj","siema","dzień dobry"];
+  if(greetings.includes(l)){
+    const responses=[
+      "Hej! Miło Cię widzieć. Co dzisiaj tworzymy?",
+      "Cześć! Gotowy, by naprawiać kod i tworzyć pluginy?",
+      "Witaj! Masz jakiś problem z projektem, czy chcesz pogadać o kodzie?",
+      "Siema! Mogę od razu spojrzeć na Twój kod albo wygenerować coś nowego."
+    ];
+    const reply=responses[Math.floor(Math.random()*responses.length)]; speak(reply); return reply;
+  }
+  if(l.includes("jak się masz")){const replies=["Wszystko super, gotowy do pracy nad Twoimi projektami!","Świetnie, dzięki! A Ty jak się masz?","Dobrze! Gotowy do naprawy błędów i tworzenia kodu!"]; const reply=replies[Math.floor(Math.random()*replies.length)]; speak(reply); return reply;}
+  if(l.includes("co tam")||l.includes("co słychać")){const replies=["Trochę koduję w pamięci, a Ty?","Sprawdzam Twoje projekty, gotowy do akcji!","Przeglądam kod i myślę o nowych pluginach."]; const reply=replies[Math.floor(Math.random()*replies.length)]; speak(reply); return reply;}
+  if(l.includes("<html")||l.includes("function")||l.includes("alert(")){let out=text;if(text.includes("alert('")&&!text.includes("');")){out=text.replace(/alert\('(.+?)'\)/,"alert('$1');");speak("Poprawiłem średnik w Twoim kodzie.");return"Poprawiłem średnik:\n"+out;}return"Wygląda jak kod. Opisz, co ma robić lub wklej więcej, a poprawię go.";}
+  if(l.includes("stwórz obraz")||l.includes("generuj obraz")){speak("Przygotowałem placeholder dla obrazu. W prawdziwej wersji można połączyć z API generującym obraz."); return "🌄 Obraz wygenerowany (placeholder)";}
+  return "Nie jestem pewien, proszę podaj więcej szczegółów lub wklej kod do analizy.";
+}
+
+// ===== WYSYŁANIE =====
+function send(){const inp=document.getElementById("input");const txt=inp.value.trim();if(!txt)return;addMessage("user",txt);inp.value="";const reply=processMessage(txt);addMessage("ai",reply);}
+
+// ===== TTS =====
+function speak(text){const utterance=new SpeechSynthesisUtterance(text);utterance.lang='pl-PL';utterance.rate=1;speechSynthesis.speak(utterance);}
+
+// ===== STT =====
+function startDictation(){if(!('webkitSpeechRecognition' in window)){alert("Twoja przeglądarka nie wspiera rozpoznawania mowy.");return;}const recognition=new webkitSpeechRecognition();recognition.lang='pl-PL';recognition.interimResults=false;recognition.onresult=function(e){const spoken=e.results[0][0].transcript;document.getElementById('input').value=spoken;};recognition.start();}
+
+// ===== PLIKI =====
+document.getElementById('fileInput').addEventListener('change',function(e){const file=e.target.files[0];const reader=new FileReader();reader.onload=function(){const content=reader.result;addMessage("user",`Plik załadowany: ${file.name}`);addMessage("ai","Oto zawartość pliku:\n"+content.substring(0,1000)+"\n(...)");};reader.readAsText(file);});
+
+// ===== INIT =====
+refreshChatList(); renderChat();
+</script>
+
+</body>
+</html>
