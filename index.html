@@ -2,197 +2,81 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>MC Hosting Panel</title>
-
+<title>Custom AI Frontend</title>
 <style>
-body{
-    margin:0;
-    font-family:Inter,Arial;
-    background:#0f172a;
-    color:#e5e7eb;
-}
-header{
-    background:#020617;
-    padding:16px;
-    font-size:20px;
-    font-weight:700;
-}
-#app{display:flex;height:100vh}
-aside{
-    width:220px;
-    background:#020617;
-    padding:10px;
-}
-aside button{
-    width:100%;
-    padding:10px;
-    margin:4px 0;
-    background:#020617;
-    border:0;
-    color:#e5e7eb;
-    text-align:left;
-    cursor:pointer;
-}
-aside button:hover{background:#1e293b}
-
-main{flex:1;padding:20px}
-
-.hidden{display:none}
-
-.card{
-    background:#020617;
-    padding:16px;
-    border-radius:8px;
-    margin-bottom:16px;
-}
-
-button.primary{background:#22c55e;color:#000}
-button.danger{background:#ef4444}
-button{padding:8px 14px;border:0;border-radius:4px;font-weight:600}
-
-#console{
-    background:#000;
-    color:#0f0;
-    padding:10px;
-    height:300px;
-    overflow:auto;
-    font-family:monospace;
-}
-input{
-    width:100%;
-    padding:8px;
-    margin:6px 0;
-}
+body { background:#0e0e0e; color:#fff; font-family:Arial; }
+#chat { max-width:700px; margin:30px auto; }
+.msg { margin:10px 0; }
+.user { color:#4fc3f7; }
+.ai { color:#81c784; }
+input { width:80%; padding:10px; }
+button { padding:10px; }
 </style>
 </head>
-
 <body>
 
-<header>🟩 Minecraft Hosting Panel</header>
-
-<div id="app">
-<aside>
-    <button onclick="view('servers')">Servers</button>
-    <button onclick="view('console')">Console</button>
-    <button onclick="view('settings')">Settings</button>
-    <button onclick="logout()">Logout</button>
-</aside>
-
-<main>
-
-<!-- LOGIN -->
-<div id="login" class="card">
-<h2>Login</h2>
-<input id="email" placeholder="email">
-<input id="password" type="password" placeholder="password">
-<button class="primary" onclick="login()">LOGIN</button>
-</div>
-
-<!-- SERVERS -->
-<div id="servers" class="card hidden">
-<h2>Your Servers</h2>
-<div id="serverList"></div>
-</div>
-
-<!-- CONSOLE -->
-<div id="consoleView" class="card hidden">
-<h2>Console</h2>
-<button class="primary" onclick="action('start')">START</button>
-<button onclick="action('stop')">STOP</button>
-<button onclick="action('restart')">RESTART</button>
-<button class="danger" onclick="action('kill')">KILL</button>
-<pre id="console"></pre>
-</div>
-
-<!-- SETTINGS -->
-<div id="settings" class="card hidden">
-<h2>Account</h2>
-<p>Subusers, limity, plany – backend</p>
-</div>
-
-</main>
-</div>
+<div id="chat"></div>
+<input id="input" placeholder="Napisz..." />
+<button onclick="send()">Wyślij</button>
 
 <script>
-const API = "https://TWOJ-VPS-IP:3000"; // <- ZMIENISZ
-let token = localStorage.getItem("token");
-let currentServer = null;
+// ==================
+// STAN AI
+// ==================
+const AI = {
+  mode: "normal", // normal | admin | help
+  memory: [],
+};
 
-function view(id){
-    document.querySelectorAll('.card').forEach(x=>x.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
+// ==================
+// GŁÓWNA FUNKCJA
+// ==================
+function processMessage(text) {
+  text = text.toLowerCase();
+
+  // ZMIANA TRYBU
+  if (text === "/admin") {
+    AI.mode = "admin";
+    return "Tryb ADMIN aktywny.";
+  }
+
+  if (text === "/normal") {
+    AI.mode = "normal";
+    return "Powrót do trybu normalnego.";
+  }
+
+  // TRYB ADMIN
+  if (AI.mode === "admin") {
+    if (text.includes("status"))
+      return "System działa. Pamięć: " + AI.memory.length;
+  }
+
+  // LOGIKA GŁÓWNA
+  if (text.includes("cześć")) return "Siema. Mów konkretnie.";
+  if (text.includes("pomoc")) return "Dostępne komendy: /admin /normal";
+
+  // PAMIĘĆ
+  AI.memory.push(text);
+
+  return "Nie znam tej komendy.";
 }
 
-function login(){
-    fetch(API+"/login",{
-        method:"POST",
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            email:email.value,
-            password:password.value
-        })
-    })
-    .then(r=>r.json())
-    .then(d=>{
-        token=d.token;
-        localStorage.setItem("token",token);
-        loadServers();
-        view('servers');
-    });
-}
+// ==================
+// UI
+// ==================
+function send() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
 
-function logout(){
-    localStorage.removeItem("token");
-    location.reload();
-}
+  const userMsg = input.value;
+  if (!userMsg) return;
 
-function loadServers(){
-    fetch(API+"/servers",{
-        headers:{Authorization:"Bearer "+token}
-    })
-    .then(r=>r.json())
-    .then(d=>{
-        const s=document.getElementById('serverList');
-        s.innerHTML='';
-        d.forEach(x=>{
-            const div=document.createElement('div');
-            div.innerHTML=`
-                <b>${x.name}</b><br>
-                RAM: ${x.ram}MB<br>
-                <button onclick="openConsole('${x.id}')">OPEN</button>
-            `;
-            s.appendChild(div);
-        });
-    });
-}
+  chat.innerHTML += `<div class="msg user">> ${userMsg}</div>`;
 
-function openConsole(id){
-    currentServer=id;
-    view('consoleView');
-    loadConsole();
-}
+  const reply = processMessage(userMsg);
+  chat.innerHTML += `<div class="msg ai">${reply}</div>`;
 
-function action(a){
-    fetch(API+`/servers/${currentServer}/${a}`,{
-        method:"POST",
-        headers:{Authorization:"Bearer "+token}
-    });
-}
-
-function loadConsole(){
-    fetch(API+`/servers/${currentServer}/logs`,{
-        headers:{Authorization:"Bearer "+token}
-    })
-    .then(r=>r.text())
-    .then(t=>{
-        console.textContent=t;
-        setTimeout(loadConsole,2000);
-    });
-}
-
-if(token){
-    loadServers();
-    view('servers');
+  input.value = "";
 }
 </script>
 
