@@ -5,7 +5,7 @@
 <title>Dorsz 1.0 – Twój Asystent</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body, html { width:100%; height:100%; font-family:Arial,sans-serif; background:#111; color:#eee; display:flex; }
+body, html { width:100%; height:100%; font-family:Arial,sans-serif; background:#222; color:#eee; display:flex; }
 #sidebar { width:250px; background:#1f1f1f; display:flex; flex-direction:column; transition: width 0.3s; border-right:1px solid #333; position:relative; }
 #sidebar.collapsed { width:50px; }
 #sidebar .top { display:flex; align-items:center; justify-content:space-between; padding:10px; }
@@ -58,113 +58,4 @@ body, html { width:100%; height:100%; font-family:Arial,sans-serif; background:#
     <input id="input" placeholder="Wpisz wiadomość..." onkeydown="if(event.key==='Enter'){send();}">
     <button id="send" onclick="send()">Wyślij</button>
     <button id="voiceBtn" onclick="startDictation()">🎤</button>
-    <input type="file" id="fileInput">
-  </div>
-</div>
-
-<script>
-// ===== DANE =====
-let chats = JSON.parse(localStorage.getItem("dorszChats") || "[]");
-let currentChatIndex = null;
-
-// ===== SIDEBAR =====
-function refreshChatList() {
-  const list = document.getElementById("chatList");
-  list.innerHTML = "";
-  chats.forEach((chat, index) => {
-    const btn = document.createElement("button");
-    btn.className = "chatBtn";
-    btn.textContent = chat.title;
-    btn.onclick = () => loadChat(index);
-    list.appendChild(btn);
-  });
-}
-
-function newChat() {
-  const title = prompt("Nazwa czatu:") || ("Czat " + (chats.length+1));
-  chats.push({ title, messages: [] });
-  currentChatIndex = chats.length-1;
-  saveChats();
-  refreshChatList();
-  renderChat();
-}
-
-function filterChats() {
-  const q = document.getElementById("searchChats").value.toLowerCase();
-  document.querySelectorAll("#chatList button").forEach(btn => {
-    btn.style.display = btn.textContent.toLowerCase().includes(q) ? "" : "none";
-  });
-}
-
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("collapsed");
-}
-
-function saveChats() { localStorage.setItem("dorszChats", JSON.stringify(chats)); }
-function loadChat(index) { currentChatIndex = index; renderChat(); }
-
-// ===== CHAT =====
-function renderChat() {
-  const chatElem = document.getElementById("chat");
-  chatElem.innerHTML = "";
-  if(currentChatIndex===null) return;
-  const msgs = chats[currentChatIndex].messages;
-  msgs.forEach(m=>{
-    const div = document.createElement("div");
-    div.className = "msg "+(m.from==="user"?"user":"ai");
-    if(m.from==="ai"){
-      const textDiv = document.createElement("div");
-      textDiv.textContent = m.text;
-      const copyBtn = document.createElement("button");
-      copyBtn.textContent="📋 Kopiuj";
-      copyBtn.className="copyBtn";
-      copyBtn.onclick=()=>{navigator.clipboard.writeText(m.text).then(()=>{copyBtn.textContent="✅ Skopiowano!"; setTimeout(()=>copyBtn.textContent="📋 Kopiuj",1000);})};
-      div.appendChild(textDiv);
-      div.appendChild(copyBtn);
-    } else div.textContent = m.text;
-    chatElem.appendChild(div);
-  });
-  chatElem.scrollTop = chatElem.scrollHeight;
-}
-
-// ===== WIADOMOŚCI =====
-function addMessage(from,text){if(currentChatIndex===null)newChat();chats[currentChatIndex].messages.push({from,text});renderChat();saveChats();}
-
-// ===== LOGIKA DORSZA =====
-function processMessage(text){
-  const l=text.toLowerCase().trim();
-  const greetings=["hej","cześć","witaj","siema","dzień dobry"];
-  if(greetings.includes(l)){
-    const responses=[
-      "Hej! Miło Cię widzieć. Co dzisiaj tworzymy?",
-      "Cześć! Gotowy, by naprawiać kod i tworzyć pluginy?",
-      "Witaj! Masz jakiś problem z projektem, czy chcesz pogadać o kodzie?",
-      "Siema! Mogę od razu spojrzeć na Twój kod albo wygenerować coś nowego."
-    ];
-    const reply=responses[Math.floor(Math.random()*responses.length)]; speak(reply); return reply;
-  }
-  if(l.includes("jak się masz")){const replies=["Wszystko super, gotowy do pracy nad Twoimi projektami!","Świetnie, dzięki! A Ty jak się masz?","Dobrze! Gotowy do naprawy błędów i tworzenia kodu!"]; const reply=replies[Math.floor(Math.random()*replies.length)]; speak(reply); return reply;}
-  if(l.includes("co tam")||l.includes("co słychać")){const replies=["Trochę koduję w pamięci, a Ty?","Sprawdzam Twoje projekty, gotowy do akcji!","Przeglądam kod i myślę o nowych pluginach."]; const reply=replies[Math.floor(Math.random()*replies.length)]; speak(reply); return reply;}
-  if(l.includes("<html")||l.includes("function")||l.includes("alert(")){let out=text;if(text.includes("alert('")&&!text.includes("');")){out=text.replace(/alert\('(.+?)'\)/,"alert('$1');");speak("Poprawiłem średnik w Twoim kodzie.");return"Poprawiłem średnik:\n"+out;}return"Wygląda jak kod. Opisz, co ma robić lub wklej więcej, a poprawię go.";}
-  if(l.includes("stwórz obraz")||l.includes("generuj obraz")){speak("Przygotowałem placeholder dla obrazu. W prawdziwej wersji można połączyć z API generującym obraz."); return "🌄 Obraz wygenerowany (placeholder)";}
-  return "Nie jestem pewien, proszę podaj więcej szczegółów lub wklej kod do analizy.";
-}
-
-// ===== WYSYŁANIE =====
-function send(){const inp=document.getElementById("input");const txt=inp.value.trim();if(!txt)return;addMessage("user",txt);inp.value="";const reply=processMessage(txt);addMessage("ai",reply);}
-
-// ===== TTS =====
-function speak(text){const utterance=new SpeechSynthesisUtterance(text);utterance.lang='pl-PL';utterance.rate=1;speechSynthesis.speak(utterance);}
-
-// ===== STT =====
-function startDictation(){if(!('webkitSpeechRecognition' in window)){alert("Twoja przeglądarka nie wspiera rozpoznawania mowy.");return;}const recognition=new webkitSpeechRecognition();recognition.lang='pl-PL';recognition.interimResults=false;recognition.onresult=function(e){const spoken=e.results[0][0].transcript;document.getElementById('input').value=spoken;};recognition.start();}
-
-// ===== PLIKI =====
-document.getElementById('fileInput').addEventListener('change',function(e){const file=e.target.files[0];const reader=new FileReader();reader.onload=function(){const content=reader.result;addMessage("user",`Plik załadowany: ${file.name}`);addMessage("ai","Oto zawartość pliku:\n"+content.substring(0,1000)+"\n(...)");};reader.readAsText(file);});
-
-// ===== INIT =====
-refreshChatList(); renderChat();
-</script>
-
-</body>
-</html>
+    <input type="file" id="fileInput"
