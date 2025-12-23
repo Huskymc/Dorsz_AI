@@ -203,4 +203,8 @@ function startDictation(){if(!('webkitSpeechRecognition' in window)){alert("Twoj
 document.getElementById('fileInput').addEventListener('change',function(e){const file=e.target.files[0];const reader=new FileReader();reader.onload=function(){const content=reader.result;addMessage("user",`Plik załadowany: ${file.name}`);addMessage("ai","Oto zawartość pliku:\n"+content.substring(0,1000)+"\n(...)");};reader.readAsText(file);});
 
 // ===== INIT =====
-refreshChatL
+refreshChatList(); renderChat();
+</script>
+
+</body>
+</html>
