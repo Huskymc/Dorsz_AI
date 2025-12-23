@@ -238,3 +238,18 @@ function send(){
   const t=input.value.trim();
   if(!t)return;
   addMsg("user",t);
+  input.value="";
+  setTimeout(()=>addMsg("ai",dorszLogic(t)),150);
+}
+
+function setMode(m){
+  mode=m;
+  addMsg("ai","Zmieniono tryb na: "+(m==="image"?"Obrazy":"Czat"));
+}
+
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("collapsed");
+}
+</script>
+</body>
+</html>
