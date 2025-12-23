@@ -175,4 +175,63 @@ function processMessage(text) {
     return "Wygląda jak kod. Opisz, co ma robić lub wklej więcej, a poprawię go.";
   }
 
-  // Generowanie obrazów
+  // Generowanie obrazów (placeholder)
+  if (l.includes("stwórz obraz") || l.includes("generuj obraz")) {
+    speak("Przygotowałem placeholder dla obrazu. W prawdziwej wersji można połączyć z API generującym obraz.");
+    return "🌄 Obraz wygenerowany (placeholder)";
+  }
+
+  return "Nie jestem pewien, proszę podaj więcej szczegółów lub wklej kod do analizy.";
+}
+
+// ========== Wysyłanie wiadomości ==========
+function send() {
+  const inp = document.getElementById("input");
+  const txt = inp.value.trim();
+  if (!txt) return;
+  addMessage("user", txt);
+  inp.value = "";
+  const reply = processMessage(txt);
+  addMessage("ai", reply);
+}
+
+// ========== Text-to-Speech ==========
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'pl-PL';
+  utterance.rate = 1;
+  speechSynthesis.speak(utterance);
+}
+
+// ========== Speech-to-Text ==========
+function startDictation() {
+  if (!('webkitSpeechRecognition' in window)) { alert("Twoja przeglądarka nie wspiera rozpoznawania mowy."); return; }
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = 'pl-PL';
+  recognition.interimResults = false;
+  recognition.onresult = function(event) {
+    const spoken = event.results[0][0].transcript;
+    document.getElementById('input').value = spoken;
+  };
+  recognition.start();
+}
+
+// ========== Dodawanie plików ==========
+document.getElementById('fileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function() {
+    const content = reader.result;
+    addMessage("user", `Plik załadowany: ${file.name}`);
+    addMessage("ai", "Oto zawartość pliku:\n" + content.substring(0,1000)+"\n(...)"); 
+  };
+  reader.readAsText(file);
+});
+
+// ========== Init ==========
+refreshChatList();
+renderChat();
+</script>
+
+</body>
+</html>
