@@ -1,39 +1,28 @@
+ // server.js
 const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-const fs = require("fs");
-
+const bodyParser = require("body-parser");
 const app = express();
-app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use("/images", express.static("images"));
 
-app.post("/generate", async (req, res) => {
-  const prompt = req.body.prompt;
+app.use(bodyParser.json());
+app.use(express.static("public"));
 
-  try {
-    const response = await axios.post(
-      "http://127.0.0.1:7860/sdapi/v1/txt2img",
-      {
-        prompt: prompt,
-        steps: 25,
-        width: 512,
-        height: 512
-      }
-    );
+app.post("/api/chat", (req, res) => {
+  const userMessage = req.body.message || "";
 
-    const base64 = response.data.images[0];
-    const buffer = Buffer.from(base64, "base64");
+  let reply = "Analizuję problem…";
 
-    const fileName = `img_${Date.now()}.png`;
-    fs.writeFileSync(`images/${fileName}`, buffer);
-
-    res.json({ url: `/images/${fileName}` });
-  } catch (err) {
-    res.status(500).json({ error: "Błąd generowania obrazu" });
+  if (/hej|cześć|witaj/i.test(userMessage)) {
+    reply = "Hej 👋 W czym mogę pomóc?";
+  } else if (/błąd|error/i.test(userMessage)) {
+    reply = "Daj kod lub logi – znajdziemy problem.";
+  } else if (/plugin|minecraft/i.test(userMessage)) {
+    reply = "Mogę napisać plugin lub naprawić istniejący.";
   }
+
+  res.json({ reply });
 });
 
-app.listen(3000, () =>
-  console.log("✅ Dorsz backend działa: http://localhost:3000")
-);
+app.listen(3000, () => {
+  console.log("✅ Dorsz 1.0 działa: http://localhost:3000");
+});
+
