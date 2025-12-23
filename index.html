@@ -2,163 +2,177 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 5.0 – Miły Programista 50Y</title>
+<title>Dorsz 6.1 – Multimodalny Asystent</title>
 <style>
-  body {
-    margin:0; padding:0;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background-color: #111;
-    color: #eee;
-  }
-  #container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  #chat {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    background: #1c1c1c;
-    border-bottom: 1px solid #333;
-  }
-  .msg { margin:10px 0; line-height:1.5; }
-  .user { color:#4fc3f7; }
-  .ai { color:#81c784; white-space:pre-wrap; background:#222; padding:10px; border-radius:6px; }
-  #input-container {
-    display: flex;
-    padding: 10px;
-    background: #1c1c1c;
-    border-top: 1px solid #333;
-  }
-  input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 6px;
-    border:none;
-    margin-right:10px;
-    font-size:16px;
-    background:#2c2c2c;
-    color:#fff;
-  }
-  button {
-    padding:12px 18px;
-    border-radius:6px;
-    border:none;
-    background:#4fc3f7;
-    color:#000;
-    font-weight:bold;
-    cursor:pointer;
-  }
-  button:hover { background:#36a0d1; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body, html { width:100%; height:100%; font-family:Arial,sans-serif; }
+body { display:flex; background:#111; color:#eee; }
+
+/* SIDEBAR */
+#sidebar {
+  width:250px;
+  background:#1f1f1f;
+  border-right:1px solid #333;
+  display:flex;
+  flex-direction:column;
+}
+#sidebar button {
+  padding:12px;
+  border:none;
+  background:none;
+  color:#fff;
+  text-align:left;
+  font-size:16px;
+  cursor:pointer;
+}
+#sidebar button:hover { background:#333; }
+#sidebar input {
+  margin:10px;
+  padding:8px;
+  border-radius:4px;
+  border:none;
+  background:#2a2a2a;
+  color:#fff;
+}
+#chatList { flex:1; overflow-y:auto; }
+
+/* MAIN CHAT */
+#main { flex:1; display:flex; flex-direction:column; }
+#chat { flex:1; padding:20px; overflow-y:auto; }
+.msg { margin:8px 0; line-height:1.5; }
+.user { color:#4fc3f7; }
+.ai   { color:#81c784; white-space:pre-wrap; background:#222; padding:10px; border-radius:6px; position:relative; }
+.ai button.copyBtn {
+  position:absolute; top:8px; right:8px; font-size:12px; padding:2px 6px; border:none; border-radius:4px; cursor:pointer;
+}
+
+/* INPUT */
+#input-container { display:flex; padding:10px; background:#1c1c1c; border-top:1px solid #333; }
+#input { flex:1; padding:12px; border:none; border-radius:6px; background:#2a2a2a; color:#fff; font-size:16px; }
+#send { padding:12px 18px; background:#4fc3f7; border:none; border-radius:6px; margin-left:10px; color:#000; font-weight:bold; cursor:pointer; }
+#send:hover { background:#36a0d1; }
+#voiceBtn { margin-left:10px; background:#81c784; color:#000; border:none; border-radius:6px; padding:12px; cursor:pointer; }
+#fileInput { margin-left:10px; padding:8px; border-radius:6px; border:none; background:#2a2a2a; color:#fff; }
 </style>
 </head>
 <body>
-<div id="container">
+
+<div id="sidebar">
+  <button onclick="newChat()">🆕 Nowy Chat</button>
+  <input type="text" id="searchChats" placeholder="🔍 Szukaj czatów" oninput="filterChats()">
+  <div id="chatList"></div>
+</div>
+
+<div id="main">
   <div id="chat"></div>
   <div id="input-container">
-    <input id="input" placeholder="Wklej kod lub opisz problem..." />
-    <button onclick="send()">Wyślij</button>
+    <input id="input" placeholder="Wklej kod lub opisz problem...">
+    <button id="send" onclick="send()">Wyślij</button>
+    <button id="voiceBtn" onclick="startDictation()">🎤</button>
+    <input type="file" id="fileInput">
   </div>
 </div>
 
 <script>
-// ==================
-// STAN DORSZA 5.0
-// ==================
-const DORSZ = {
-  mode: "help", // help | normal | admin
-  memory: []
-};
+// ========== Dane ==========
+let chats = JSON.parse(localStorage.getItem("dorszChats") || "[]");
+let currentChatIndex = null;
 
-// ==================
-// FUNKCJA PRZETWARZAJĄCA WIADOMOŚĆ
-// ==================
+// ========== Sidebar ==========
+function refreshChatList() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  chats.forEach((chat, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = chat.title;
+    btn.onclick = () => loadChat(index);
+    list.appendChild(btn);
+  });
+}
+function newChat() {
+  const title = prompt("Nazwa czatu:") || ("Czat " + (chats.length+1));
+  chats.push({ title, messages: [] });
+  currentChatIndex = chats.length-1;
+  saveChats();
+  refreshChatList();
+  renderChat();
+}
+function filterChats() {
+  const q = document.getElementById("searchChats").value.toLowerCase();
+  document.querySelectorAll("#chatList button").forEach(btn => {
+    btn.style.display = btn.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+function saveChats() { localStorage.setItem("dorszChats", JSON.stringify(chats)); }
+function loadChat(index) { currentChatIndex = index; renderChat(); }
+
+// ========== Render czatu ==========
+function renderChat() {
+  const chatElem = document.getElementById("chat");
+  chatElem.innerHTML = "";
+  if (currentChatIndex === null) return;
+  const msgs = chats[currentChatIndex].messages;
+  msgs.forEach((m, i) => {
+    const div = document.createElement("div");
+    div.className = "msg " + (m.from==="user"?"user":"ai");
+
+    if(m.from === "ai") {
+      const textDiv = document.createElement("div");
+      textDiv.textContent = m.text;
+      textDiv.style.whiteSpace = "pre-wrap";
+
+      const copyBtn = document.createElement("button");
+      copyBtn.textContent = "📋 Kopiuj";
+      copyBtn.className = "copyBtn";
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(m.text).then(() => {
+          copyBtn.textContent = "✅ Skopiowano!";
+          setTimeout(() => copyBtn.textContent = "📋 Kopiuj", 1000);
+        });
+      };
+
+      div.appendChild(textDiv);
+      div.appendChild(copyBtn);
+    } else {
+      div.textContent = m.text;
+    }
+
+    chatElem.appendChild(div);
+  });
+  chatElem.scrollTop = chatElem.scrollHeight;
+}
+
+// ========== Dodawanie wiadomości ==========
+function addMessage(from, text) {
+  if (currentChatIndex === null) newChat();
+  chats[currentChatIndex].messages.push({ from, text });
+  renderChat();
+  saveChats();
+}
+
+// ========== Logika Dorsza ==========
 function processMessage(text) {
-  text = text.trim();
-  DORSZ.memory.push(text);
+  const l = text.toLowerCase().trim();
 
-  // KOMENDY SYSTEMOWE
-  if(text === "/status") return `Dorsz 5.0: Tryb ${DORSZ.mode}, gotowy do pomocy.`;
-  if(text === "/help") return "Komendy: /status /help /mode";
-  if(text.startsWith("/mode")) {
-    const parts = text.split(" ");
-    if(parts[1] && ["help","normal","admin"].includes(parts[1])) {
-      DORSZ.mode = parts[1];
-      return "Tryb zmieniony na: " + DORSZ.mode;
-    } else return "Dostępne tryby: help, normal, admin";
+  // Powitania
+  if (l === "hej" || l==="cześć" || l==="witaj") {
+    speak("Witaj! W czym mogę Ci pomóc dzisiaj?");
+    return "Witaj! W czym mogę Ci pomóc dzisiaj?";
   }
 
-  // Główna logika
-  if(DORSZ.mode === "help") return handleHelpMode(text);
-  if(DORSZ.mode === "normal") return handleNormalMode(text);
-  if(DORSZ.mode === "admin") return handleAdminMode(text);
+  // Komendy
+  if (l === "/status") return `Dorsz 6.1: Tryb help, gotowy.`;
+  if (l === "/help") return "Możesz pisać powitania, prosić o naprawę kodu, pluginów, HTML/JS i generowanie obrazów.";
 
-  return "Nieznana sytuacja.";
-}
-
-// ==================
-// TRYB HELP – miły, naprawiający błędy
-// ==================
-function handleHelpMode(text) {
-  const lower = text.toLowerCase();
-
-  // JS/HTML/CSS
-  if(lower.includes("html") || lower.includes("js") || lower.includes("css")) {
-    return `Widzę, że chcesz użyć JS/HTML/CSS. Oto przykład działający i poprawny:\n\n<!DOCTYPE html>\n<html>\n<body>\n<button onclick="alert('Dorsz 5.0 działa!')">Kliknij</button>\n</body>\n</html>\n\nJeżeli wkleisz swój kod, poprawię go krok po kroku i wyjaśnię zmiany w miły sposób.`;
+  // Kod HTML/JS/CSS
+  if (l.includes("<html") || l.includes("function") || l.includes("alert(")) {
+    let out = text;
+    if (text.includes("alert('") && !text.includes("');")) {
+      out = text.replace(/alert\('(.+?)'\)/, "alert('$1');");
+      speak("Poprawiłem średnik w Twoim kodzie.");
+      return "Poprawiłem średnik:\n" + out;
+    }
+    return "Wygląda jak kod. Opisz, co ma robić lub wklej więcej, a poprawię go.";
   }
 
-  // Minecraft / Plugin / JAR
-  if(lower.includes("minecraft") || lower.includes("mc") || lower.includes("jar")) {
-    return "Dorsz 5.0: Podaj wersję serwera i fragment kodu pluginu (Java lub dekompilowany JAR), a poprawię go bez błędów i wyjaśnię krok po kroku.";
-  }
-
-  // Naprawa kodu
-  if(lower.includes("napraw") || lower.includes("error") || lower.includes("błąd")) {
-    return "Wklej fragment kodu, a Dorsz 5.0 sprawdzi go, poprawi i wyjaśni wszystkie zmiany w miły sposób.";
-  }
-
-  return "Nie mogę rozpoznać problemu w pełni. Podaj więcej szczegółów lub fragment kodu.";
-}
-
-// ==================
-// TRYB NORMALNY – szybkie wskazówki
-// ==================
-function handleNormalMode(text) {
-  if(text.toLowerCase().includes("cześć")) return "Cześć! Napisz dokładnie, w czym mogę Ci pomóc.";
-  return "Nie rozumiem. Użyj /help, aby zobaczyć dostępne komendy.";
-}
-
-// ==================
-// TRYB ADMIN – pamięć i diagnostyka
-// ==================
-function handleAdminMode(text) {
-  if(text.toLowerCase().includes("pamięć")) {
-    return "Ostatnie wpisy:\n" + DORSZ.memory.slice(-10).join("\n");
-  }
-  return "Tryb admin: komendy /status /pamięć";
-}
-
-// ==================
-// INTERFEJS CZATU
-// ==================
-function send() {
-  const input = document.getElementById("input");
-  const chat = document.getElementById("chat");
-
-  const userMsg = input.value;
-  if(!userMsg) return;
-
-  chat.innerHTML += `<div class="msg user">> ${userMsg}</div>`;
-
-  const reply = processMessage(userMsg);
-  chat.innerHTML += `<div class="msg ai">${reply}</div>`;
-
-  input.value = "";
-  chat.scrollTop = chat.scrollHeight;
-}
-</script>
-</body>
-</html>
+  // Generowanie obrazów
