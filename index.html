@@ -690,3 +690,469 @@
     <button class="secondary" onclick="closeSettings()">Anuluj</button>
   </div>
 </div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button class="close-btn" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <button class="collapse-btn" onclick="toggleCollapse()">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  
+  <button class="new-chat" onclick="newChat()">
+    <i class="fas fa-plus"></i><span class="txt">Nowy czat</span>
+  </button>
+  
+  <div class="mode-tabs">
+    <button class="mode-tab active chat-mode" id="chatTab" onclick="setMode('chat')">
+      <i class="fas fa-comment"></i><span>Czat</span>
+    </button>
+    <button class="mode-tab image-mode" id="imageTab" onclick="setMode('image')">
+      <i class="fas fa-image"></i><span>Obrazy</span>
+    </button>
+  </div>
+  
+  <div id="history"></div>
+  
+  <div class="sidebar-bottom">
+    <button class="sidebar-btn" onclick="clearAll()">
+      <i class="fas fa-trash"></i><span class="txt">Wyczyść wszystko</span>
+    </button>
+    <button class="sidebar-btn" onclick="openSettings()">
+      <i class="fas fa-cog"></i><span class="txt">Ustawienia</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <span id="modeIndicator">🐟 Dorsz AI</span>
+    <div style="width: 40px;"></div>
+  </div>
+
+  <div id="welcome">
+    <div class="logo">🐟</div>
+    <h1>Dorsz AI</h1>
+    <p id="welcomeText">Jak mogę Ci dzisiaj pomóc?</p>
+    <div class="prompts" id="promptsContainer"></div>
+  </div>
+
+  <div id="chat"></div>
+
+  <div id="input-area">
+    <div class="input-wrapper">
+      <div id="attachments"></div>
+      <div class="input-box" id="inputBox">
+        <button id="attachBtn" onclick="document.getElementById('fileInput').click()" title="Dodaj plik">
+          <i class="fas fa-plus"></i>
+        </button>
+        <input type="file" id="fileInput" multiple accept=".txt,.js,.html,.css,.json,.py,.java,.c,.cpp,.md,.xml,.sql,.sh,.bat,.yml,.yaml,.ts,.tsx,.jsx,.vue,.php,.rb,.go,.rs,.swift,.kt" onchange="handleFiles(this.files)">
+        <textarea id="input" rows="1" placeholder="Napisz wiadomość..."></textarea>
+        <button id="voiceBtn" onclick="toggleVoice()" title="Mów głosem">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+      <div class="input-info" id="inputInfo">Dorsz AI • Google Gemini • Enter = wyślij • 🎤 = mów</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== KONFIGURACJA ==========
+const API_KEY = 'AIzaSyAUhMzc40JclNn9Ndw5OwhBrK4DCmiaZFY';
+const IMAGE_API_URL = 'https://image.pollinations.ai/prompt/';
+
+let userName = localStorage.getItem('dorsz_username') || '';
+let model = localStorage.getItem('dorsz_model') || 'gemini-1.5-flash';
+let currentMode = 'chat';
+let chats = [];
+let currentChat = null;
+let messages = [];
+let generating = false;
+let attachedFiles = [];
+
+// Voice - nowe zmienne
+let recognition = null;
+let isRecording = false;
+let voiceText = '';
+
+try {
+  chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
+} catch(e) {
+  chats = [];
+}
+
+const CHAT_PROMPTS = [
+  { icon: 'fa-gamepad', text: 'Napisz plugin Minecraft' },
+  { icon: 'fa-code', text: 'Wyjaśnij async/await w JavaScript' },
+  { icon: 'fa-bug', text: 'Pomóż naprawić błąd w kodzie' },
+  { icon: 'fa-globe', text: 'Stwórz stronę HTML' }
+];
+
+const IMAGE_PROMPTS = [
+  { icon: 'fa-mountain-sun', text: 'Zachód słońca nad górami' },
+  { icon: 'fa-robot', text: 'Futurystyczny robot cyberpunk' },
+  { icon: 'fa-cat', text: 'Kot w kosmicznym hełmie' },
+  { icon: 'fa-city', text: 'Miasto przyszłości nocą' }
+];
+
+// ========== INIT ==========
+function init() {
+  document.getElementById('modelSelect').value = model;
+  document.getElementById('userNameInput').value = userName;
+  
+  if (localStorage.getItem('dorsz_collapsed') === 'true') {
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
+  
+  initVoice();
+  renderHistory();
+  updateModeUI();
+  updateWelcomeMessage();
+  
+  const input = document.getElementById('input');
+  input.addEventListener('input', resize);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+}
+
+function getSystemPrompt() {
+  const greeting = userName ? `Zwracaj się do użytkownika po imieniu: ${userName}. ` : '';
+  return `Jesteś Dorsz AI - inteligentny asystent programisty. ${greeting}Odpowiadaj po polsku. Formatuj kod w blokach \`\`\`język. Bądź konkretny i pomocny.`;
+}
+
+function updateWelcomeMessage() {
+  const text = userName ? `Cześć ${userName}! Jak mogę Ci pomóc?` : 'Jak mogę Ci dzisiaj pomóc?';
+  document.getElementById('welcomeText').textContent = text;
+}
+
+// ========== VOICE - DZIAŁA IDEALNIE ==========
+function initVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    document.getElementById('voiceBtn').style.display = 'none';
+    return;
+  }
+  
+  const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'pl-PL';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  
+  recognition.onresult = function(e) {
+    let final = voiceText;
+    let interim = '';
+    
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const transcript = e.results[i][0].transcript;
+      if (e.results[i].isFinal) {
+        final += transcript + ' ';
+        voiceText = final;
+      } else {
+        interim = transcript;
+      }
+    }
+    
+    document.getElementById('input').value = final + interim;
+    resize();
+  };
+  
+  recognition.onerror = function(e) {
+    if (e.error === 'not-allowed') {
+      alert('Zezwól na dostęp do mikrofonu!');
+      stopVoice();
+    }
+  };
+  
+  recognition.onend = function() {
+    if (isRecording) {
+      setTimeout(function() {
+        if (isRecording) {
+          try { recognition.start(); } catch(err) {}
+        }
+      }, 100);
+    }
+  };
+}
+
+function toggleVoice() {
+  if (!recognition) {
+    alert('Twoja przeglądarka nie obsługuje mikrofonu');
+    return;
+  }
+  
+  if (isRecording) {
+    stopVoice();
+  } else {
+    startVoice();
+  }
+}
+
+function startVoice() {
+  isRecording = true;
+  voiceText = document.getElementById('input').value;
+  document.getElementById('voiceBtn').classList.add('recording');
+  document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-stop"></i>';
+  document.getElementById('voiceBtn').title = 'Zatrzymaj';
+  
+  try { recognition.start(); } catch(e) {}
+}
+
+function stopVoice() {
+  isRecording = false;
+  document.getElementById('voiceBtn').classList.remove('recording');
+  document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+  document.getElementById('voiceBtn').title = 'Mów głosem';
+  
+  try { recognition.stop(); } catch(e) {}
+}
+
+// ========== COLLAPSE SIDEBAR ==========
+function toggleCollapse() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('collapsed');
+  localStorage.setItem('dorsz_collapsed', sidebar.classList.contains('collapsed'));
+}
+
+// ========== MODE ==========
+function setMode(mode) {
+  currentMode = mode;
+  updateModeUI();
+}
+
+function updateModeUI() {
+  const chatTab = document.getElementById('chatTab');
+  const imageTab = document.getElementById('imageTab');
+  const indicator = document.getElementById('modeIndicator');
+  const inputBox = document.getElementById('inputBox');
+  const sendBtn = document.getElementById('send');
+  const inputInfo = document.getElementById('inputInfo');
+  const input = document.getElementById('input');
+  const attachBtn = document.getElementById('attachBtn');
+  const welcomeText = document.getElementById('welcomeText');
+  
+  if (currentMode === 'chat') {
+    chatTab.classList.add('active');
+    imageTab.classList.remove('active');
+    indicator.innerHTML = '🐟 Dorsz AI';
+    indicator.classList.remove('image-mode');
+    inputBox.classList.remove('image-mode');
+    sendBtn.classList.remove('image-mode');
+    input.placeholder = 'Napisz wiadomość...';
+    inputInfo.textContent = 'Dorsz AI • Google Gemini • Enter = wyślij • 🎤 = mów';
+    attachBtn.style.display = 'block';
+    welcomeText.textContent = userName ? `Cześć ${userName}! Jak mogę Ci pomóc?` : 'Jak mogę Ci dzisiaj pomóc?';
+    renderPrompts(CHAT_PROMPTS, false);
+  } else {
+    chatTab.classList.remove('active');
+    imageTab.classList.add('active');
+    indicator.innerHTML = '🎨 Dorsz AI - Grafik';
+    indicator.classList.add('image-mode');
+    inputBox.classList.add('image-mode');
+    sendBtn.classList.add('image-mode');
+    input.placeholder = 'Opisz obraz...';
+    inputInfo.textContent = 'Dorsz AI Grafik • Pollinations AI • Darmowe generowanie';
+    attachBtn.style.display = 'none';
+    welcomeText.textContent = userName ? `${userName}, jaki obraz stworzyć?` : 'Jaki obraz mam stworzyć?';
+    renderPrompts(IMAGE_PROMPTS, true);
+  }
+}
+
+function renderPrompts(prompts, isImage) {
+  const container = document.getElementById('promptsContainer');
+  container.innerHTML = '';
+  prompts.forEach(function(p) {
+    const div = document.createElement('div');
+    div.className = 'prompt' + (isImage ? ' image-prompt' : '');
+    div.innerHTML = '<i class="fas ' + p.icon + '"></i> ' + p.text;
+    div.onclick = function() { use(p.text); };
+    container.appendChild(div);
+  });
+}
+
+// ========== FILES ==========
+function handleFiles(files) {
+  if (currentMode === 'image') return;
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.size > 100000) {
+      alert('Plik "' + file.name + '" za duży (max 100KB)');
+      continue;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      attachedFiles.push({
+        name: file.name,
+        size: file.size,
+        content: e.target.result
+      });
+      renderAttachments();
+    };
+    reader.readAsText(file);
+  }
+  document.getElementById('fileInput').value = '';
+}
+
+function renderAttachments() {
+  const el = document.getElementById('attachments');
+  el.innerHTML = '';
+  attachedFiles.forEach(function(file, index) {
+    const div = document.createElement('div');
+    div.className = 'attachment';
+    div.innerHTML = '<i class="fas fa-file-code"></i><span>' + file.name + '</span><button class="remove" onclick="removeFile(' + index + ')"><i class="fas fa-times"></i></button>';
+    el.appendChild(div);
+  });
+}
+
+function removeFile(index) {
+  attachedFiles.splice(index, 1);
+  renderAttachments();
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  return (bytes / 1024).toFixed(1) + ' KB';
+}
+
+// ========== SEND ==========
+function send() {
+  const text = document.getElementById('input').value.trim();
+  if ((!text && attachedFiles.length === 0) || generating) return;
+  
+  if (isRecording) stopVoice();
+  
+  if (currentMode === 'image') {
+    generateImage(text);
+  } else {
+    sendChat(text);
+  }
+}
+
+function sendChat(text) {
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('chat').classList.add('active');
+  
+  let fullMessage = text;
+  let fileInfoHtml = '';
+  
+  if (attachedFiles.length > 0) {
+    fullMessage += '\n\n';
+    attachedFiles.forEach(function(file) {
+      fullMessage += '📎 Plik: ' + file.name + '\n```\n' + file.content + '\n```\n\n';
+      fileInfoHtml += '<div class="file-preview"><i class="fas fa-file-code"></i><div class="file-info"><div class="file-name">' + file.name + '</div><div class="file-size">' + formatFileSize(file.size) + '</div></div></div>';
+    });
+  }
+  
+  messages.push({ role: 'user', content: fullMessage });
+  addMsg('user', text + fileInfoHtml, true);
+  
+  document.getElementById('input').value = '';
+  attachedFiles = [];
+  renderAttachments();
+  resize();
+  
+  generating = true;
+  document.getElementById('send').disabled = true;
+  const typing = addTyping();
+  
+  // Google Gemini API
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+  
+  const contents = [];
+  
+  // System prompt
+  contents.push({ role: 'user', parts: [{ text: getSystemPrompt() }] });
+  contents.push({ role: 'model', parts: [{ text: 'Rozumiem! Jestem Dorsz AI i chętnie pomogę.' }] });
+  
+  // Historia
+  messages.forEach(function(m) {
+    contents.push({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    });
+  });
+  
+  fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: contents,
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 8192
+      }
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    typing.remove();
+    
+    if (data.candidates && data.candidates[0]) {
+      const reply = data.candidates[0].content.parts[0].text;
+      messages.push({ role: 'assistant', content: reply });
+      addMsg('assistant', reply);
+      saveChat();
+    } else {
+      addMsg('assistant', '❌ Błąd: ' + (data.error?.message || 'Nieznany błąd'));
+    }
+  })
+  .catch(function(err) {
+    typing.remove();
+    addMsg('assistant', '❌ Błąd połączenia: ' + err.message);
+  })
+  .finally(function() {
+    generating = false;
+    document.getElementById('send').disabled = false;
+  });
+}
+
+// ========== IMAGE ==========
+function generateImage(prompt) {
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('chat').classList.add('active');
+  
+  messages.push({ role: 'user', content: prompt });
+  addMsg('user', prompt, true);
+  
+  document.getElementById('input').value = '';
+  resize();
+  
+  generating = true;
+  document.getElementById('send').disabled = true;
+  
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'msg assistant';
+  loadingDiv.innerHTML = '<div class="msg-inner"><div class="avatar assistant image-mode">🎨</div><div class="msg-text"><div class="image-loading"><div class="spinner"></div><span>Generuję obraz...</span></div></div></div>';
+  document.getElementById('chat').appendChild(loadingDiv);
+  loadingDiv.scrollIntoView({ behavior: 'smooth' });
+  
+  const imageUrl = IMAGE_API_URL + encodeURIComponent(prompt) + '?width=1024&height=1024&nologo=true';
+  
+  const img = new Image();
+  img.onload = function() {
+    loadingDiv.remove();
+    
+    const greeting = userName ? userName + ', oto ' : 'Oto ';
+    const responseHtml = '<p>' + greeting + 'Twój obraz:</p>' +
+      '<img src="' + imageUrl + '" class="generated-image" onclick="openLightbox(\'' + imageUrl + '\')">' +
+      '<div class="image-actions">' +
+      '<button class="image-btn" onclick="window.open(\'' + imageUrl + '\')"><i class="fas fa-external-link-alt"></i> Otwórz</button>' +
+      '<button class="image-btn" onclick="downloadImage(\'' + imageUrl + '\')"><i class="fas fa-download"></i> Pobierz</button>' +
+      '</div>';
+    
+    messages.push({ role: 'assistant', content: '[Obraz: ' + prompt + ']' });
+    addMsg('assistant', 
