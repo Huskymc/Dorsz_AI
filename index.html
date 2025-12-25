@@ -6,433 +6,102 @@
   <title>Dorsz AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* Styl pozostaje bez zmian dla czytelności odpowiedzi - użyj tego samego CSS co wcześniej */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    :root {
-      --bg-main: #343541;
-      --bg-sidebar: #202123;
-      --bg-input: #40414f;
-      --bg-msg-ai: #444654;
-      --text: #ececf1;
-      --text-dim: #8e8ea0;
-      --accent: #19c37d;
-      --accent-image: #a855f7;
-      --accent-voice: #ef4444;
-      --border: rgba(255,255,255,0.1);
-      --sidebar-width: 260px;
-      --sidebar-collapsed: 60px;
-    }
-    
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg-main);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-    }
-    
-    #sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-sidebar);
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      transition: width 0.3s ease;
-      overflow: hidden;
-    }
-    
-    #sidebar.collapsed { width: var(--sidebar-collapsed); }
-    #sidebar.collapsed .txt, 
-    #sidebar.collapsed .mode-tab span, 
-    #sidebar.collapsed .history-item span, 
-    #sidebar.collapsed .sidebar-btn span { display: none; }
-    #sidebar.collapsed .collapse-btn i { transform: rotate(180deg); }
-    
-    .collapse-btn {
-      width: 100%; padding: 10px; background: none; border: none;
-      color: var(--text-dim); cursor: pointer; font-size: 14px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 8px; margin-bottom: 8px; transition: all 0.2s;
-    }
-    
-    .collapse-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-    
-    .new-chat {
-      display: flex; align-items: center; gap: 10px; padding: 12px;
-      border: 1px solid var(--border); border-radius: 8px; background: none;
-      color: var(--text); cursor: pointer; font-size: 14px; white-space: nowrap;
-    }
-    
-    .new-chat:hover { background: rgba(255,255,255,0.1); }
-    
-    .mode-tabs { display: flex; gap: 4px; margin-top: 16px; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 8px; }
-    
-    .mode-tab {
-      flex: 1; padding: 10px; border: none; border-radius: 6px; background: none;
-      color: var(--text-dim); cursor: pointer; font-size: 13px;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    
+    :root { --bg-main: #343541; --bg-sidebar: #202123; --bg-input: #40414f; --bg-msg-ai: #444654; --text: #ececf1; --text-dim: #8e8ea0; --accent: #19c37d; --accent-image: #a855f7; --border: rgba(255,255,255,0.1); --sidebar-width: 260px; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg-main); color: var(--text); height: 100vh; display: flex; }
+    #sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); padding: 8px; display: flex; flex-direction: column; transition: width 0.3s; overflow: hidden; }
+    #sidebar.collapsed { width: 60px; }
+    #sidebar.collapsed span, #sidebar.collapsed .txt { display: none; }
+    .new-chat { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--text); cursor: pointer; margin-bottom: 10px; }
+    .mode-tabs { display: flex; gap: 4px; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px; }
+    .mode-tab { flex: 1; padding: 8px; border: none; border-radius: 6px; background: none; color: var(--text-dim); cursor: pointer; }
     .mode-tab.active { background: var(--bg-input); color: var(--text); }
-    .mode-tab.active.chat-mode { color: var(--accent); }
-    .mode-tab.active.image-mode { color: var(--accent-image); }
-    
-    #history { flex: 1; overflow-y: auto; margin-top: 16px; }
-    
-    .history-item {
-      padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      display: flex; align-items: center; gap: 8px;
-    }
-    
+    #history { flex: 1; overflow-y: auto; }
+    .history-item { padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .history-item:hover { background: rgba(255,255,255,0.1); }
-    .history-item.active { background: rgba(255,255,255,0.15); }
-    
-    .sidebar-bottom { border-top: 1px solid var(--border); padding-top: 8px; }
-    
-    .sidebar-btn {
-      display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px;
-      border: none; border-radius: 8px; background: none; color: var(--text);
-      cursor: pointer; font-size: 14px; text-align: left;
-    }
-    .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
-    
     #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    
-    #topbar {
-      height: 48px; padding: 0 16px; display: flex; align-items: center;
-      justify-content: space-between; border-bottom: 1px solid var(--border);
-    }
-    
-    #topbar button { background: none; border: none; color: var(--text); cursor: pointer; padding: 8px; }
-    
-    #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    #topbar { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--border); justify-content: space-between; }
+    #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     #welcome.hidden { display: none; }
-    
-    .logo { font-size: 64px; margin-bottom: 16px; }
-    .prompts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 600px; }
-    
-    .prompt {
-      padding: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-      border-radius: 12px; cursor: pointer; font-size: 14px;
-    }
-    .prompt:hover { background: rgba(255,255,255,0.1); }
-    
-    #chat { flex: 1; overflow-y: auto; display: none; }
+    #chat { flex: 1; overflow-y: auto; display: none; padding-bottom: 20px; }
     #chat.active { display: block; }
-    
-    .msg { padding: 24px; }
-    .msg.user { background: var(--bg-main); }
+    .msg { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); }
     .msg.assistant { background: var(--bg-msg-ai); }
-    
-    .msg-inner { max-width: 768px; margin: 0 auto; display: flex; gap: 16px; }
-    
-    .avatar { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .avatar.user { background: #5436DA; }
+    .msg-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 15px; }
+    .avatar { width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .avatar.user { background: #5436da; }
     .avatar.assistant { background: var(--accent); }
-    .avatar.assistant.image-mode { background: var(--accent-image); }
-    
-    .msg-text { flex: 1; line-height: 1.7; overflow-wrap: break-word; }
-    .msg-text pre { background: #1e1e1e; border-radius: 8px; padding: 16px; overflow-x: auto; margin: 12px 0; position: relative; }
-    .msg-text code { font-family: 'Consolas', monospace; font-size: 14px; }
-    
-    .copy-btn { position: absolute; top: 8px; right: 8px; padding: 4px 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; color: var(--text-dim); cursor: pointer; font-size: 12px; }
-    
-    .generated-image { max-width: 100%; border-radius: 12px; margin: 12px 0; cursor: pointer; }
-    
-    .typing { display: inline-flex; gap: 4px; }
-    .typing span { width: 8px; height: 8px; background: var(--text); border-radius: 50%; animation: bounce 1.4s infinite; opacity: 0.4; }
-    .typing span:nth-child(2) { animation-delay: 0.2s; }
-    .typing span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
-    
-    #input-area { padding: 16px 24px 24px; }
-    .input-wrapper { max-width: 768px; margin: 0 auto; }
-    .input-box { display: flex; align-items: flex-end; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; }
-    
-    #input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-size: 16px; resize: none; max-height: 200px; padding: 4px 8px; }
-    
-    #send { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 8px; font-size: 18px; }
-    #send:hover { color: var(--text); }
-    
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal.hidden { display: none; }
-    .modal-box { background: var(--bg-sidebar); padding: 32px; border-radius: 16px; width: 90%; max-width: 400px; }
-    .modal-box input, .modal-box select { width: 100%; padding: 12px; margin: 12px 0; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
-    .modal-box button { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-
-    #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; }
-    #lightbox.show { display: flex; }
-    #lightbox img { max-width: 90%; max-height: 90%; }
-
-    @media (max-width: 768px) {
-      #sidebar { position: fixed; left: 0; height: 100%; transform: translateX(-100%); z-index: 100; }
-      #sidebar.open { transform: translateX(0); }
-      .prompts { grid-template-columns: 1fr; }
-    }
+    .msg-text { line-height: 1.6; flex: 1; }
+    #input-area { padding: 20px; }
+    .input-box { max-width: 800px; margin: 0 auto; background: var(--bg-input); border-radius: 12px; display: flex; padding: 10px; align-items: flex-end; }
+    #input { flex: 1; background: none; border: none; color: white; resize: none; padding: 5px; outline: none; font-family: inherit; font-size: 16px; }
+    #send { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 5px 10px; font-size: 20px; }
+    .generated-image { max-width: 100%; border-radius: 8px; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-<div class="modal hidden" id="settingsModal">
-  <div class="modal-box">
-    <h2>Ustawienia</h2>
-    <input type="text" id="userNameInput" placeholder="Twoje imię">
-    <select id="modelSelect">
-      <option value="gemini-1.5-flash">Gemini 1.5 Flash (Szybki)</option>
-      <option value="gemini-1.5-pro">Gemini 1.5 Pro (Mądry)</option>
-    </select>
-    <button onclick="saveSettings()">Zapisz</button>
-    <button style="background:none; color:white; margin-top:8px;" onclick="closeSettings()">Anuluj</button>
-  </div>
-</div>
-
-<div id="lightbox" onclick="this.classList.remove('show')"><img id="lightboxImg"></div>
-
 <div id="sidebar">
-  <button class="collapse-btn" onclick="toggleCollapse()"><i class="fas fa-chevron-left"></i></button>
   <button class="new-chat" onclick="newChat()"><i class="fas fa-plus"></i><span class="txt">Nowy czat</span></button>
   <div class="mode-tabs">
-    <button class="mode-tab active chat-mode" id="chatTab" onclick="setMode('chat')"><i class="fas fa-comment"></i><span>Czat</span></button>
-    <button class="mode-tab image-mode" id="imageTab" onclick="setMode('image')"><i class="fas fa-image"></i><span>Obrazy</span></button>
+    <button class="mode-tab active" id="chatTab" onclick="setMode('chat')">Czat</button>
+    <button class="mode-tab" id="imageTab" onclick="setMode('image')">Obrazy</button>
   </div>
   <div id="history"></div>
-  <div class="sidebar-bottom">
-    <button class="sidebar-btn" onclick="clearAll()"><i class="fas fa-trash"></i><span>Wyczyść wszystko</span></button>
-    <button class="sidebar-btn" onclick="openSettings()"><i class="fas fa-cog"></i><span>Ustawienia</span></button>
-  </div>
 </div>
 
 <div id="main">
   <div id="topbar">
-    <button onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-    <span id="modeIndicator">🐟 Dorsz AI</span>
-    <div style="width:40px"></div>
+    <span>🐟 Dorsz AI</span>
+    <button onclick="openSettings()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-cog"></i></button>
   </div>
 
   <div id="welcome">
-    <div class="logo">🐟</div>
-    <h1 id="welcomeTitle">Dorsz AI</h1>
-    <p id="welcomeText" style="margin-bottom:20px; color:var(--text-dim)">Jak mogę Ci dzisiaj pomóc?</p>
-    <div class="prompts" id="promptsContainer"></div>
+    <div style="font-size: 50px;">🐟</div>
+    <h1>Dorsz AI</h1>
+    <p>Wklej swój klucz API w ustawieniach, aby zacząć.</p>
   </div>
 
   <div id="chat"></div>
 
   <div id="input-area">
-    <div class="input-wrapper">
-      <div id="attachments" style="display:flex; gap:8px; margin-bottom:8px;"></div>
-      <div class="input-box">
-        <button id="attachBtn" onclick="document.getElementById('fileInput').click()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;"><i class="fas fa-plus"></i></button>
-        <input type="file" id="fileInput" hidden onchange="handleFiles(this.files)">
-        <textarea id="input" rows="1" placeholder="Napisz wiadomość..." onkeydown="handleKey(event)"></textarea>
-        <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
-      </div>
+    <div class="input-box">
+      <textarea id="input" rows="1" placeholder="Napisz coś..." onkeydown="handleKey(event)"></textarea>
+      <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
 </div>
 
-<script>
-var API_KEY = 'AIzaSyCkYSEAZk8cFaxkHk05oa7tO--IGbzKoyU'; // Zmień jeśli potrzebujesz
-var IMAGE_API_URL = 'https://image.pollinations.ai/prompt/';
+<div id="settingsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:100;">
+  <div style="background:#202123; padding:30px; border-radius:15px; width:90%; max-width:400px;">
+    <h3>Ustawienia</h3>
+    <p style="font-size:12px; margin:10px 0;">Klucz API z Google AI Studio:</p>
+    <input type="password" id="apiKeyInput" style="width:100%; padding:10px; margin-bottom:20px; background:#40414f; border:1px solid #555; color:white; border-radius:5px;">
+    <button onclick="saveSettings()" style="width:100%; padding:10px; background:#19c37d; border:none; border-radius:5px; cursor:pointer;">Zapisz i Odśwież</button>
+  </div>
+</div>
 
-var userName = localStorage.getItem('dorsz_username') || '';
-var model = localStorage.getItem('dorsz_model') || 'gemini-1.5-flash';
+<script>
+// Pobieranie klucza z localStorage lub Twojego domyślnego
+var API_KEY = localStorage.getItem('dorsz_api_key') || 'AIzaSyAUhMzc40JclNn9Ndw5OwhBrK4DCmiaZFY';
 var currentMode = 'chat';
 var messages = [];
-var chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
-var currentChat = null;
-var generating = false;
-var attachedFiles = [];
 
-// Inicjalizacja
 function init() {
-  updateWelcome();
-  renderPrompts();
-  renderHistory();
-  document.getElementById('modelSelect').value = model;
-  document.getElementById('userNameInput').value = userName;
-}
-
-function updateWelcome() {
-  document.getElementById('welcomeText').innerText = userName ? `Witaj ${userName}! W czym pomóc?` : "Jak mogę Ci dzisiaj pomóc?";
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    send();
-  }
-  e.target.style.height = 'auto';
-  e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+  document.getElementById('apiKeyInput').value = API_KEY;
+  // Wczytaj historię z pamięci
+  const saved = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
+  const historyDiv = document.getElementById('history');
+  saved.forEach((c, i) => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerText = c.title;
+    item.onclick = () => loadChat(i);
+    historyDiv.appendChild(item);
+  });
 }
 
 function setMode(mode) {
   currentMode = mode;
-  document.getElementById('chatTab').classList.toggle('active', mode === 'chat');
-  document.getElementById('imageTab').classList.toggle('active', mode === 'image');
-  document.getElementById('modeIndicator').innerText = mode === 'chat' ? '🐟 Dorsz AI' : '🎨 Dorsz Grafik';
-  renderPrompts();
-}
-
-function renderPrompts() {
-  const container = document.getElementById('promptsContainer');
-  const items = currentMode === 'chat' ? 
-    [{i:'fa-code', t:'Napisz stronę HTML'}, {i:'fa-gamepad', t:'Plugin do Minecraft'}] : 
-    [{i:'fa-robot', t:'Robot w lesie'}, {i:'fa-moon', t:'Miasto na księżycu'}];
-  
-  container.innerHTML = items.map(p => `<div class="prompt" onclick="usePrompt('${p.t}')"><i class="fas ${p.i}"></i> ${p.t}</div>`).join('');
-}
-
-function usePrompt(t) { document.getElementById('input').value = t; send(); }
-
-async function send() {
-  const input = document.getElementById('input');
-  const text = input.value.trim();
-  if((!text && attachedFiles.length === 0) || generating) return;
-
-  document.getElementById('welcome').classList.add('hidden');
-  document.getElementById('chat').classList.add('active');
-  
-  let userContent = text;
-  attachedFiles.forEach(f => userContent += `\nPlik ${f.name}:\n${f.content}`);
-  
-  addMsg('user', text);
-  messages.push({role: 'user', content: userContent});
-  
-  input.value = '';
-  input.style.height = 'auto';
-  attachedFiles = [];
-  document.getElementById('attachments').innerHTML = '';
-
-  generating = true;
-  const typing = addTyping();
-
-  if(currentMode === 'chat') {
-    try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${API_KEY}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ contents: [{ parts: [{ text: userContent }] }] })
-      });
-      const data = await res.json();
-      typing.remove();
-      const reply = data.candidates[0].content.parts[0].text;
-      addMsg('assistant', reply);
-      messages.push({role: 'assistant', content: reply});
-      saveChat();
-    } catch(e) {
-      typing.remove();
-      addMsg('assistant', '❌ Błąd połączenia z Gemini.');
-    }
-  } else {
-    typing.remove();
-    const url = `${IMAGE_API_URL}${encodeURIComponent(text)}?width=1024&height=1024&seed=${Math.random()}`;
-    addMsg('assistant', `<img src="${url}" class="generated-image" onclick="openLightbox('${url}')">`);
-    messages.push({role: 'assistant', content: `[Obraz: ${text}]`});
-    saveChat();
-  }
-  generating = false;
-}
-
-function addMsg(role, content) {
-  const chat = document.getElementById('chat');
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  const formatted = role === 'assistant' ? formatText(content) : escapeHtml(content);
-  
-  div.innerHTML = `
-    <div class="msg-inner">
-      <div class="avatar ${role === 'assistant' && currentMode === 'image' ? 'assistant image-mode' : role}">${role === 'user' ? 'U' : '🐟'}</div>
-      <div class="msg-text">${formatted}</div>
-    </div>
-  `;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-  return div;
-}
-
-function formatText(t) {
-  let text = escapeHtml(t);
-  text = text.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  return text.replace(/\n/g, '<br>');
-}
-
-function escapeHtml(t) {
-  return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-function addTyping() {
-  const div = document.createElement('div');
-  div.className = 'msg assistant';
-  div.innerHTML = `<div class="msg-inner"><div class="avatar assistant">🐟</div><div class="typing"><span></span><span></span><span></span></div></div>`;
-  document.getElementById('chat').appendChild(div);
-  return div;
-}
-
-function handleFiles(files) {
-  for(let f of files) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      attachedFiles.push({name: f.name, content: e.target.result});
-      document.getElementById('attachments').innerHTML += `<div style="background:var(--bg-input); padding:4px 8px; border-radius:4px; font-size:12px;">${f.name}</div>`;
-    };
-    reader.readAsText(f);
-  }
-}
-
-function saveChat() {
-  const id = currentChat || Date.now();
-  const title = messages[0].content.substring(0, 25) + "...";
-  const chatIdx = chats.findIndex(c => c.id === id);
-  if(chatIdx > -1) chats[chatIdx].msgs = messages;
-  else { chats.unshift({id, title, msgs: messages}); currentChat = id; }
-  localStorage.setItem('dorsz_chats', JSON.stringify(chats));
-  renderHistory();
-}
-
-function renderHistory() {
-  document.getElementById('history').innerHTML = chats.map(c => 
-    `<div class="history-item ${currentChat === c.id ? 'active' : ''}" onclick="loadChat(${c.id})"><i class="fas fa-comment"></i> <span>${c.title}</span></div>`
-  ).join('');
-}
-
-function loadChat(id) {
-  const chat = chats.find(c => c.id === id);
-  currentChat = id;
-  messages = chat.msgs;
-  document.getElementById('welcome').classList.add('hidden');
-  document.getElementById('chat').classList.add('active');
-  document.getElementById('chat').innerHTML = '';
-  messages.forEach(m => addMsg(m.role, m.content));
-  renderHistory();
-}
-
-function newChat() {
-  currentChat = null; messages = [];
-  document.getElementById('chat').innerHTML = '';
-  document.getElementById('chat').classList.remove('active');
-  document.getElementById('welcome').classList.remove('hidden');
-  renderHistory();
-}
-
-function clearAll() { localStorage.removeItem('dorsz_chats'); chats = []; newChat(); }
-function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
-function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
-function saveSettings() {
-  userName = document.getElementById('userNameInput').value;
-  model = document.getElementById('modelSelect').value;
-  localStorage.setItem('dorsz_username', userName);
-  localStorage.setItem('dorsz_model', model);
-  updateWelcome(); closeSettings();
-}
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-function toggleCollapse() { document.getElementById('sidebar').classList.toggle('collapsed'); }
-function openLightbox(s) { document.getElementById('lightboxImg').src = s; document.getElementById('lightbox').classList.add('show'); }
-
-init();
-</script>
-</body>
-</html>
+  document.
