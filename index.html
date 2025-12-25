@@ -1,504 +1,43 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<title>Dorsz AI 2.0</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Söhne', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  background: #343541;
-  color: #ececf1;
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* === SIDEBAR === */
-#sidebar {
-  width: 260px;
-  background: #202123;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s;
-}
-
-#sidebar.hidden {
-  transform: translateX(-100%);
-  position: absolute;
-}
-
-.new-chat-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.new-chat-btn:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.chat-history {
-  flex: 1;
-  overflow-y: auto;
-  margin-top: 20px;
-}
-
-.chat-history-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #ececf1;
-  transition: background 0.2s;
-}
-
-.chat-history-item:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.chat-history-item.active {
-  background: rgba(255,255,255,0.15);
-}
-
-.sidebar-footer {
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 10px;
-  margin-top: 10px;
-}
-
-.sidebar-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: transparent;
-  color: #ececf1;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  width: 100%;
-  text-align: left;
-  transition: background 0.2s;
-}
-
-.sidebar-btn:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-/* === MAIN === */
-#main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-/* === TOPBAR === */
-#topbar {
-  height: 44px;
-  background: #343541;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-#topbar .title {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-#topbar button {
-  background: transparent;
-  border: none;
-  color: #ececf1;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-#topbar button:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-/* === CHAT === */
-#chat {
-  flex: 1;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-}
-
-.message-row {
-  padding: 24px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-.message-row.user {
-  background: #343541;
-}
-
-.message-row.assistant {
-  background: #444654;
-}
-
-.message-content {
-  max-width: 768px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  gap: 16px;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.avatar.user-avatar {
-  background: #5436DA;
-}
-
-.avatar.assistant-avatar {
-  background: #19c37d;
-}
-
-.message-text {
-  flex: 1;
-  line-height: 1.6;
-  padding-top: 4px;
-  word-wrap: break-word;
-}
-
-.message-text code {
-  background: #1e1e1e;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Consolas', monospace;
-  font-size: 14px;
-}
-
-.message-text pre {
-  background: #1e1e1e;
-  padding: 16px;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 12px 0;
-}
-
-.message-text pre code {
-  background: none;
-  padding: 0;
-}
-
-.message-text strong {
-  font-weight: 600;
-}
-
-/* Typing indicator */
-.typing-indicator {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px 0;
-}
-
-.typing-indicator span {
-  width: 8px;
-  height: 8px;
-  background: #ececf1;
-  border-radius: 50%;
-  animation: typing 1.4s infinite;
-}
-
-.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typing {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-8px); opacity: 1; }
-}
-
-/* === INPUT === */
-#input-container {
-  padding: 16px 24px 24px;
-  background: #343541;
-}
-
-#input-wrapper {
-  max-width: 768px;
-  margin: 0 auto;
-  position: relative;
-}
-
-#input-box {
-  display: flex;
-  align-items: flex-end;
-  background: #40414f;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-#input-box:focus-within {
-  border-color: rgba(255,255,255,0.3);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
-}
-
-#input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ececf1;
-  font-size: 16px;
-  line-height: 1.5;
-  resize: none;
-  max-height: 200px;
-  font-family: inherit;
-}
-
-#input::placeholder {
-  color: #8e8ea0;
-}
-
-#send-btn {
-  background: transparent;
-  border: none;
-  color: #8e8ea0;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: color 0.2s, background 0.2s;
-}
-
-#send-btn:hover:not(:disabled) {
-  color: #ececf1;
-  background: rgba(255,255,255,0.1);
-}
-
-#send-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-#send-btn.active {
-  color: #19c37d;
-}
-
-.input-info {
-  text-align: center;
-  margin-top: 12px;
-  font-size: 12px;
-  color: #8e8ea0;
-}
-
-/* === WELCOME SCREEN === */
-#welcome {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-#welcome.hidden {
-  display: none;
-}
-
-.welcome-logo {
-  font-size: 64px;
-  margin-bottom: 24px;
-}
-
-.welcome-title {
-  font-size: 32px;
-  font-weight: 600;
-  margin-bottom: 32px;
-}
-
-.welcome-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  max-width: 900px;
-}
-
-.welcome-card {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-}
-
-.welcome-card h3 {
-  font-size: 14px;
-  margin-bottom: 12px;
-  color: #ececf1;
-}
-
-.welcome-card-item {
-  background: rgba(255,255,255,0.05);
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 8px;
-  font-size: 13px;
-  color: #c5c5d2;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.welcome-card-item:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-/* === MODE SELECTOR === */
-.mode-selector {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.mode-btn {
-  padding: 8px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  color: #ececf1;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.mode-btn:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.mode-btn.active {
-  background: #19c37d;
-  border-color: #19c37d;
-}
-
-/* === SCROLLBAR === */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-/* === RESPONSIVE === */
-@media (max-width: 768px) {
-  #sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    z-index: 100;
-    transform: translateX(-100%);
-  }
-  
-  #sidebar.show {
-    transform: translateX(0);
-  }
-  
-  .welcome-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .message-content {
-    padding: 0 16px;
-  }
-}
-
-/* === IMAGE CANVAS === */
-.generated-image {
-  border-radius: 12px;
-  margin-top: 12px;
-  max-width: 100%;
-}
-
-/* === COPY BUTTON === */
-.copy-btn {
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: #ececf1;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s;
-}
-
-.copy-btn:hover {
-  background: rgba(255,255,255,0.2);
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dorsz AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
+
+<!-- MODAL API KEY -->
+<div id="apiModal" class="modal">
+  <div class="modal-content">
+    <h2>🐟 Witaj w Dorsz AI!</h2>
+    <p>Podaj swój klucz API Groq aby rozpocząć:</p>
+    <input type="password" id="apiKeyInput" placeholder="gsk_xxxxxxxxxxxxxxxx">
+    <button onclick="saveApiKey()">Zapisz i rozpocznij</button>
+    <p class="modal-info">
+      <a href="https://console.groq.com/keys" target="_blank">
+        → Zdobądź darmowy klucz tutaj
+      </a>
+    </p>
+  </div>
+</div>
 
 <!-- SIDEBAR -->
 <div id="sidebar">
   <button class="new-chat-btn" onclick="newChat()">
-    <i class="fas fa-plus"></i>
-    Nowy czat
+    <i class="fas fa-plus"></i> Nowy czat
   </button>
   
-  <div class="chat-history" id="chatHistory">
-    <!-- Historia czatów -->
-  </div>
+  <div class="chat-history" id="chatHistory"></div>
   
   <div class="sidebar-footer">
-    <button class="sidebar-btn" onclick="clearAllChats()">
-      <i class="fas fa-trash"></i>
-      Wyczyść historię
+    <button class="sidebar-btn" onclick="clearHistory()">
+      <i class="fas fa-trash"></i> Wyczyść historię
     </button>
-    <button class="sidebar-btn" onclick="toggleSettings()">
-      <i class="fas fa-cog"></i>
-      Ustawienia
+    <button class="sidebar-btn" onclick="showSettings()">
+      <i class="fas fa-cog"></i> Ustawienia
     </button>
   </div>
 </div>
@@ -508,631 +47,87 @@ body {
   
   <!-- TOPBAR -->
   <div id="topbar">
-    <button onclick="toggleSidebar()" id="sidebarToggle">
+    <button onclick="toggleSidebar()">
       <i class="fas fa-bars"></i>
     </button>
-    <div class="title">🐟 Dorsz AI 2.0</div>
-    <button onclick="toggleMode()">
-      <i class="fas fa-image" id="modeIcon"></i>
+    <span class="model-name">🐟 Dorsz AI</span>
+    <button onclick="showSettings()">
+      <i class="fas fa-ellipsis-v"></i>
     </button>
   </div>
-  
-  <!-- WELCOME SCREEN -->
+
+  <!-- WELCOME -->
   <div id="welcome">
     <div class="welcome-logo">🐟</div>
-    <h1 class="welcome-title">Dorsz AI</h1>
+    <h1>Dorsz AI</h1>
+    <p>Jak mogę Ci dzisiaj pomóc?</p>
     
-    <div class="mode-selector">
-      <button class="mode-btn active" onclick="setMode('chat')" id="chatModeBtn">
-        <i class="fas fa-comment"></i> Czat
-      </button>
-      <button class="mode-btn" onclick="setMode('image')" id="imageModeBtn">
-        <i class="fas fa-image"></i> Obrazy
-      </button>
-    </div>
-    
-    <div class="welcome-cards">
-      <div class="welcome-card">
-        <h3><i class="fas fa-lightbulb"></i> Przykłady</h3>
-        <div class="welcome-card-item" onclick="usePrompt('Wyjaśnij mi jak działa JavaScript')">
-          "Wyjaśnij mi jak działa JavaScript"
-        </div>
-        <div class="welcome-card-item" onclick="usePrompt('Napisz prosty skrypt do Minecraft')">
-          "Napisz prosty skrypt do Minecraft"
-        </div>
-        <div class="welcome-card-item" onclick="usePrompt('Pomóż mi z błędem w kodzie')">
-          "Pomóż mi z błędem w kodzie"
-        </div>
+    <div class="suggestions">
+      <div class="suggestion" onclick="usePrompt('Napisz plugin Minecraft który teleportuje gracza')">
+        <i class="fas fa-gamepad"></i>
+        <span>Napisz plugin Minecraft</span>
       </div>
-      
-      <div class="welcome-card">
-        <h3><i class="fas fa-bolt"></i> Możliwości</h3>
-        <div class="welcome-card-item">Zapamiętuje kontekst rozmowy</div>
-        <div class="welcome-card-item">Generuje proste obrazy</div>
-        <div class="welcome-card-item">Pomaga z kodem i pluginami</div>
+      <div class="suggestion" onclick="usePrompt('Wyjaśnij mi jak działa async/await w JavaScript')">
+        <i class="fas fa-code"></i>
+        <span>Wyjaśnij async/await</span>
       </div>
-      
-      <div class="welcome-card">
-        <h3><i class="fas fa-exclamation-triangle"></i> Ograniczenia</h3>
-        <div class="welcome-card-item">To symulacja AI (pattern matching)</div>
-        <div class="welcome-card-item">Obrazy są generowane lokalnie</div>
-        <div class="welcome-card-item">Brak połączenia z internetem</div>
+      <div class="suggestion" onclick="usePrompt('Pomóż mi naprawić błąd w kodzie')">
+        <i class="fas fa-bug"></i>
+        <span>Napraw błąd w kodzie</span>
+      </div>
+      <div class="suggestion" onclick="usePrompt('Stwórz stronę HTML z formularzem kontaktowym')">
+        <i class="fas fa-globe"></i>
+        <span>Stwórz stronę HTML</span>
       </div>
     </div>
   </div>
-  
+
   <!-- CHAT -->
-  <div id="chat" class="hidden"></div>
-  
+  <div id="chat"></div>
+
   <!-- INPUT -->
-  <div id="input-container">
-    <div id="input-wrapper">
-      <div id="input-box">
-        <textarea id="input" placeholder="Napisz wiadomość..." rows="1"></textarea>
-        <button id="send-btn" onclick="sendMessage()">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-      <div class="input-info">
-        Dorsz AI może popełniać błędy. To symulacja AI działająca lokalnie.
-      </div>
+  <div id="inputArea">
+    <div class="input-container">
+      <textarea 
+        id="input" 
+        placeholder="Napisz wiadomość..." 
+        rows="1"
+        onkeydown="handleKey(event)"
+      ></textarea>
+      <button id="sendBtn" onclick="sendMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+    <p class="input-info">Dorsz AI używa Llama 3 przez Groq API</p>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-content">
+    <h2><i class="fas fa-cog"></i> Ustawienia</h2>
+    
+    <div class="setting-group">
+      <label>Model AI:</label>
+      <select id="modelSelect">
+        <option value="llama-3.1-70b-versatile">Llama 3.1 70B (najlepszy)</option>
+        <option value="llama-3.1-8b-instant">Llama 3.1 8B (szybszy)</option>
+        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+      </select>
+    </div>
+    
+    <div class="setting-group">
+      <label>Klucz API:</label>
+      <input type="password" id="apiKeySettings" placeholder="gsk_xxx...">
+    </div>
+    
+    <div class="modal-buttons">
+      <button onclick="saveSettings()">Zapisz</button>
+      <button class="secondary" onclick="closeSettings()">Anuluj</button>
     </div>
   </div>
 </div>
 
-<script>
-// === ELEMENTY DOM ===
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
-const welcome = document.getElementById("welcome");
-const sendBtn = document.getElementById("send-btn");
-const sidebar = document.getElementById("sidebar");
-const chatHistory = document.getElementById("chatHistory");
-
-// === STAN APLIKACJI ===
-let memory = [];
-let isThinking = false;
-let mode = "chat";
-let allChats = [];
-let currentChatId = null;
-
-// === INICJALIZACJA ===
-init();
-
-function init() {
-  loadChats();
-  renderChatHistory();
-  autoResizeTextarea();
-}
-
-// === OBSŁUGA INPUTA ===
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-
-input.addEventListener("input", () => {
-  autoResizeTextarea();
-  updateSendButton();
-});
-
-function autoResizeTextarea() {
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 200) + "px";
-}
-
-function updateSendButton() {
-  if (input.value.trim()) {
-    sendBtn.classList.add("active");
-  } else {
-    sendBtn.classList.remove("active");
-  }
-}
-
-// === WYŚWIETLANIE WIADOMOŚCI ===
-function addMessage(role, content, skipRender = false) {
-  // Ukryj welcome screen
-  welcome.classList.add("hidden");
-  chat.classList.remove("hidden");
-  
-  const row = document.createElement("div");
-  row.className = `message-row ${role}`;
-  
-  const messageContent = document.createElement("div");
-  messageContent.className = "message-content";
-  
-  // Avatar
-  const avatar = document.createElement("div");
-  avatar.className = `avatar ${role}-avatar`;
-  avatar.innerHTML = role === "user" ? '<i class="fas fa-user"></i>' : '🐟';
-  
-  // Tekst
-  const textDiv = document.createElement("div");
-  textDiv.className = "message-text";
-  
-  if (typeof content === "string") {
-    textDiv.innerHTML = formatMessage(content);
-  } else {
-    textDiv.appendChild(content);
-  }
-  
-  messageContent.appendChild(avatar);
-  messageContent.appendChild(textDiv);
-  row.appendChild(messageContent);
-  chat.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
-  
-  return textDiv;
-}
-
-function addTypingIndicator() {
-  welcome.classList.add("hidden");
-  chat.classList.remove("hidden");
-  
-  const row = document.createElement("div");
-  row.className = "message-row assistant";
-  row.id = "typing-row";
-  
-  const messageContent = document.createElement("div");
-  messageContent.className = "message-content";
-  
-  const avatar = document.createElement("div");
-  avatar.className = "avatar assistant-avatar";
-  avatar.innerHTML = "🐟";
-  
-  const textDiv = document.createElement("div");
-  textDiv.className = "message-text";
-  textDiv.innerHTML = `
-    <div class="typing-indicator">
-      <span></span><span></span><span></span>
-    </div>
-  `;
-  
-  messageContent.appendChild(avatar);
-  messageContent.appendChild(textDiv);
-  row.appendChild(messageContent);
-  chat.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
-  
-  return textDiv;
-}
-
-function removeTypingIndicator() {
-  const typingRow = document.getElementById("typing-row");
-  if (typingRow) typingRow.remove();
-}
-
-// === FORMATOWANIE WIADOMOŚCI ===
-function formatMessage(text) {
-  // Bloki kodu
-  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
-    return `<pre><code class="language-${lang}">${escapeHtml(code.trim())}</code></pre>`;
-  });
-  
-  // Inline code
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // Bold
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  
-  // Italic
-  text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  
-  // Nowe linie
-  text = text.replace(/\n/g, '<br>');
-  
-  return text;
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// === ANALIZA (PATTERN MATCHING) ===
-function analyze(text) {
-  const t = text.toLowerCase().trim();
-  
-  // Tryb obrazów
-  if (mode === "image") {
-    return { type: "image", content: generateImage(text) };
-  }
-  
-  // Powitania
-  if (/^(hej|siemka|siema|elo|cześć|witaj|hi|hello|dzień dobry|dobry wieczór)/.test(t)) {
-    return { type: "text", content: randomResponse([
-      "Hej! 👋 W czym mogę Ci dzisiaj pomóc?",
-      "Cześć! Miło Cię widzieć. Co słychać?",
-      "Hej! Gotowy do działania! 🐟",
-      "Witaj! Jak mogę Ci pomóc?"
-    ])};
-  }
-  
-  // Pytania o samego siebie
-  if (/kim jesteś|co to jest dorsz|jak masz na imię|przedstaw się/.test(t)) {
-    return { type: "text", content: "Jestem **Dorsz AI** 🐟 - lokalny asystent stworzony, żeby pomagać z kodem, odpowiadać na pytania i generować proste obrazy. Działam offline, bez połączenia z zewnętrznymi API." };
-  }
-  
-  // Prośby o pomoc
-  if (/potrzebuję pomocy|nie wiem|nie umiem|pomocy|pomóż|help|jak to zrobić/.test(t)) {
-    return { type: "text", content: randomResponse([
-      "Spokojnie! 🙂 Opisz dokładnie swój problem, a postaram się pomóc krok po kroku.",
-      "Jasne, chętnie pomogę! Powiedz mi więcej szczegółów.",
-      "Nie ma problemu! Opisz sytuację, a razem to rozwiążemy.",
-      "Oczywiście! Daj mi więcej kontekstu, żebym mógł lepiej pomóc."
-    ])};
-  }
-  
-  // Podziękowania
-  if (/dzięki|dziękuję|thx|thanks|dzięks|super|świetnie|bomba/.test(t)) {
-    return { type: "text", content: randomResponse([
-      "Nie ma za co! 😊 Jeśli masz więcej pytań, śmiało pytaj!",
-      "Cieszę się, że mogłem pomóc! 🐟",
-      "Zawsze do usług! Potrzebujesz czegoś jeszcze?",
-      "Super! Daj znać, jeśli będziesz potrzebować czegoś więcej."
-    ])};
-  }
-  
-  // Techniczne - plugin
-  if (/plugin|spigot|bukkit|paper|velocity/.test(t)) {
-    return { type: "text", content: "Rozumiem, że chcesz pomoc z **pluginem Minecraft**! 🎮\n\nPowiedz mi:\n- Na jaką wersję? (1.20, 1.19, etc.)\n- Jaki serwer? (Paper, Spigot, Velocity)\n- Co dokładnie ma robić plugin?\n\nMogę pomóc z kodem Java lub dać wskazówki!" };
-  }
-  
-  // Techniczne - skrypt
-  if (/skrypt|script|automate|automatyzacja/.test(t)) {
-    return { type: "text", content: "Chcesz stworzyć **skrypt**! 📜\n\nW jakim języku?\n- **JavaScript** - strony web, Node.js\n- **Python** - automatyzacja, boty\n- **Bash** - Linux, serwery\n- **Skript** - plugin Minecraft\n\nOpisz co ma robić, a napiszę kod!" };
-  }
-  
-  // Błędy w kodzie
-  if (/błąd|error|nie działa|crash|exception|bug/.test(t)) {
-    return { type: "text", content: "Rozumiem, że masz **błąd w kodzie**! 🐛\n\nŻebym mógł pomóc, wklej:\n1. **Kod** który sprawia problem\n2. **Komunikat błędu** (jeśli jest)\n3. **Co powinno się stać** vs co się dzieje\n\nPostaram się znaleźć rozwiązanie!" };
-  }
-  
-  // HTML/CSS/JS
-  if (/html|css|javascript|js|strona|website|frontend/.test(t)) {
-    return { type: "text", content: "Pomagam z **web developmentem**! 🌐\n\nMogę napisać:\n- Strukturę **HTML**\n- Style **CSS** (również Flexbox, Grid)\n- Logikę **JavaScript**\n\nCo dokładnie chcesz stworzyć?" };
-  }
-  
-  // Java
-  if (/java(?!script)/.test(t)) {
-    return { type: "text", content: "Rozumiem, pytasz o **Javę**! ☕\n\nPomogę z:\n- Podstawami składni\n- OOP (klasy, dziedziczenie)\n- Pluginami Minecraft\n- Debugowaniem\n\nJaka wersja Javy i co dokładnie potrzebujesz?" };
-  }
-  
-  // Python
-  if (/python|py/.test(t)) {
-    return { type: "text", content: "**Python** to świetny wybór! 🐍\n\nMogę pomóc z:\n- Podstawami języka\n- Skryptami automatyzacji\n- Botami (Discord, Telegram)\n- Analizą danych\n\nCo chcesz zrobić?" };
-  }
-  
-  // Żarty
-  if (/żart|joke|śmieszne|powiedz coś śmiesznego/.test(t)) {
-    return { type: "text", content: randomResponse([
-      "Dlaczego programiści nie lubią natury? Bo ma za dużo bugów! 🐛😄",
-      "Są tylko 10 typów ludzi - ci co rozumieją binarny i ci co nie. 😂",
-      "Jak nazywa się ryba programista? **Dorsz**-AI! 🐟💻",
-      "Mój ulubiony język? Oczywiście **C**... morze! 🌊"
-    ])};
-  }
-  
-  // Test
-  if (t === "test" || t === "ping") {
-    return { type: "text", content: "✅ **Pong!** Wszystko działa poprawnie!" };
-  }
-  
-  // Kontekst z pamięci
-  if (memory.length > 2) {
-    const lastTopics = memory.slice(-4).map(m => m.text.toLowerCase()).join(" ");
-    if (lastTopics.includes("plugin") || lastTopics.includes("minecraft")) {
-      return { type: "text", content: "Kontynuując temat **Minecraft**... 🎮\n\n" + randomResponse([
-        "Czy mogę zobaczyć kod, który masz do tej pory?",
-        "Jaki dokładnie błąd się pojawia?",
-        "Na jakiej wersji serwera to testujesz?"
-      ])};
-    }
-  }
-  
-  // Fallback - inteligentna odpowiedź
-  return { type: "text", content: randomResponse([
-    `Rozumiem! Mówisz o: "*${text.slice(0, 50)}${text.length > 50 ? '...' : ''}*"\n\nMożesz rozwinąć temat? Im więcej szczegółów, tym lepiej pomogę! 🐟`,
-    "Ciekawe pytanie! Czy możesz podać więcej kontekstu?\n\nJestem szczególnie dobry w:\n- 💻 Kodzie i programowaniu\n- 🎮 Pluginach Minecraft\n- 🌐 Stronach internetowych",
-    "Hmm, chętnie pomogę! 🙂\n\nPowiedz mi więcej - co dokładnie chcesz osiągnąć?",
-    "Jasne! Opisz problem dokładniej, a postaram się znaleźć rozwiązanie.\n\nMogę też:\n- Napisać kod\n- Wyjaśnić koncepcje\n- Wygenerować obrazek (zmień tryb)"
-  ])};
-}
-
-function randomResponse(list) {
-  return list[Math.floor(Math.random() * list.length)];
-}
-
-// === GENEROWANIE OBRAZÓW ===
-function generateImage(prompt) {
-  const c = document.createElement("canvas");
-  c.width = 512;
-  c.height = 512;
-  c.className = "generated-image";
-  const ctx = c.getContext("2d");
-  
-  // Losowe kolory bazowane na prompt
-  const hue1 = hashString(prompt) % 360;
-  const hue2 = (hue1 + 60) % 360;
-  
-  // Gradient tła
-  const grad = ctx.createLinearGradient(0, 0, c.width, c.height);
-  grad.addColorStop(0, `hsl(${hue1}, 70%, 30%)`);
-  grad.addColorStop(1, `hsl(${hue2}, 70%, 20%)`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, c.width, c.height);
-  
-  // Losowe kształty
-  for (let i = 0; i < 15; i++) {
-    ctx.beginPath();
-    const x = Math.random() * c.width;
-    const y = Math.random() * c.height;
-    const size = 20 + Math.random() * 80;
-    
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${(hue1 + Math.random() * 120) % 360}, 60%, 50%, 0.3)`;
-    ctx.fill();
-  }
-  
-  // Tekst
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.font = "bold 24px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("🐟 Dorsz AI Art", c.width / 2, c.height - 60);
-  
-  ctx.font = "16px Arial";
-  ctx.fillStyle = "rgba(255,255,255,0.6)";
-  const shortPrompt = prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt;
-  ctx.fillText(`"${shortPrompt}"`, c.width / 2, c.height - 30);
-  
-  return c;
-}
-
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-// === WYSYŁANIE WIADOMOŚCI ===
-async function sendMessage() {
-  if (isThinking) return;
-  
-  const text = input.value.trim();
-  if (!text) return;
-  
-  try {
-    // Dodaj wiadomość użytkownika
-    addMessage("user", text);
-    memory.push({ role: "user", text });
-    input.value = "";
-    autoResizeTextarea();
-    updateSendButton();
-    
-    // Pokaż typing indicator
-    isThinking = true;
-    sendBtn.disabled = true;
-    addTypingIndicator();
-    
-    // Symulacja opóźnienia "myślenia"
-    await sleep(500 + Math.random() * 1000);
-    
-    // Analizuj i odpowiedz
-    const response = analyze(text);
-    removeTypingIndicator();
-    
-    if (response.type === "text") {
-      // Efekt pisania
-      const textDiv = addMessage("assistant", "");
-      await typeWriter(textDiv, response.content);
-      memory.push({ role: "assistant", text: response.content });
-    } else if (response.type === "image") {
-      const container = document.createElement("div");
-      container.innerHTML = "<p>Oto wygenerowany obraz:</p>";
-      container.appendChild(response.content);
-      
-      const copyBtn = document.createElement("button");
-      copyBtn.className = "copy-btn";
-      copyBtn.innerHTML = '<i class="fas fa-download"></i> Pobierz';
-      copyBtn.onclick = () => downloadCanvas(response.content);
-      container.appendChild(copyBtn);
-      
-      addMessage("assistant", container);
-      memory.push({ role: "assistant", text: "[obraz]" });
-    }
-    
-    // Zapisz czat
-    saveCurrentChat();
-    
-  } catch (error) {
-    removeTypingIndicator();
-    addMessage("assistant", `❌ Wystąpił błąd: ${error.message}`);
-  } finally {
-    isThinking = false;
-    sendBtn.disabled = false;
-  }
-}
-
-// === EFEKT PISANIA ===
-async function typeWriter(element, text) {
-  const formattedText = formatMessage(text);
-  let displayText = "";
-  const plainText = text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-  
-  for (let i = 0; i < plainText.length; i++) {
-    displayText += plainText[i];
-    element.innerHTML = formatMessage(text.slice(0, getOriginalIndex(text, i + 1)));
-    chat.scrollTop = chat.scrollHeight;
-    await sleep(15 + Math.random() * 10);
-  }
-  
-  element.innerHTML = formattedText;
-}
-
-function getOriginalIndex(text, plainIndex) {
-  let plain = 0;
-  let original = 0;
-  
-  while (plain < plainIndex && original < text.length) {
-    if (text.slice(original).startsWith('**')) {
-      original += 2;
-    } else if (text[original] === '*') {
-      original += 1;
-    } else {
-      plain++;
-      original++;
-    }
-  }
-  
-  return original;
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// === POBIERANIE CANVAS ===
-function downloadCanvas(canvas) {
-  const link = document.createElement("a");
-  link.download = "dorsz-ai-art.png";
-  link.href = canvas.toDataURL();
-  link.click();
-}
-
-// === NOWY CZAT ===
-function newChat() {
-  // Zapisz obecny czat jeśli ma wiadomości
-  if (memory.length > 0) {
-    saveCurrentChat();
-  }
-  
-  // Resetuj
-  currentChatId = Date.now();
-  memory = [];
-  chat.innerHTML = "";
-  chat.classList.add("hidden");
-  welcome.classList.remove("hidden");
-  input.value = "";
-  
-  renderChatHistory();
-}
-
-// === HISTORIA CZATÓW ===
-function saveCurrentChat() {
-  if (memory.length === 0) return;
-  
-  const existingIndex = allChats.findIndex(c => c.id === currentChatId);
-  const chatData = {
-    id: currentChatId || Date.now(),
-    title: memory[0]?.text.slice(0, 30) + "..." || "Nowy czat",
-    messages: memory,
-    timestamp: Date.now()
-  };
-  
-  if (existingIndex >= 0) {
-    allChats[existingIndex] = chatData;
-  } else {
-    allChats.unshift(chatData);
-  }
-  
-  currentChatId = chatData.id;
-  
-  // Limit do 50 czatów
-  if (allChats.length > 50) {
-    allChats = allChats.slice(0, 50);
-  }
-  
-  localStorage.setItem('dorszChats', JSON.stringify(allChats));
-  renderChatHistory();
-}
-
-function loadChats() {
-  try {
-    const saved = localStorage.getItem('dorszChats');
-    if (saved) {
-      allChats = JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error("Błąd ładowania czatów:", e);
-    allChats = [];
-  }
-}
-
-function loadChat(chatId) {
-  const chatData = allChats.find(c => c.id === chatId);
-  if (!chatData) return;
-  
-  currentChatId = chatId;
-  memory = chatData.messages;
-  chat.innerHTML = "";
-  welcome.classList.add("hidden");
-  chat.classList.remove("hidden");
-  
-  memory.forEach(m => {
-    addMessage(m.role, m.text, true);
-  });
-  
-  renderChatHistory();
-}
-
-function renderChatHistory() {
-  chatHistory.innerHTML = "";
-  
-  allChats.forEach(c => {
-    const item = document.createElement("div");
-    item.className = `chat-history-item ${c.id === currentChatId ? 'active' : ''}`;
-    item.innerHTML = `<i class="fas fa-comment"></i> ${escapeHtml(c.title)}`;
-    item.onclick = () => loadChat(c.id);
-    chatHistory.appendChild(item);
-  });
-}
-
-function clearAllChats() {
-  if (confirm("Czy na pewno chcesz usunąć całą historię czatów?")) {
-    allChats = [];
-    localStorage.removeItem('dorszChats');
-    newChat();
-  }
-}
-
-// === TRYBY ===
-function setMode(m) {
-  mode = m;
-  document.getElementById("chatModeBtn").classList.toggle("active", m === "chat");
-  document.getElementById("imageModeBtn").classList.toggle("active", m === "image");
-  document.getElementById("modeIcon").className = m === "image" ? "fas fa-comment" : "fas fa-image";
-  
-  input.placeholder = m === "image" 
-    ? "Opisz obraz który chcesz wygenerować..." 
-    : "Napisz wiadomość...";
-}
-
-function toggleMode() {
-  setMode(mode === "chat" ? "image" : "chat");
-}
-
-// === UI ===
-function toggleSidebar() {
-  sidebar.classList.toggle("show");
-}
-
-function toggleSettings() {
-  alert("⚙️ Ustawienia\n\nTryb: " + mode + "\nCzatów w historii: " + allChats.length + "\n\nDorsz AI 2.0 - wersja lokalna");
-}
-
-function usePrompt(text) {
-  input.value = text;
-  autoResizeTextarea();
-  updateSendButton();
-  input.focus();
-}
-</script>
-
+<script src="js/app.js"></script>
 </body>
 </html>
