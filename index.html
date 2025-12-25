@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 1.1 – Naprawiony</title>
+<title>Dorsz 1.2 – Reakcja na każdą wiadomość</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -33,7 +33,7 @@ body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;display:flex;hei
 </div>
 
 <div id="main">
-<div id="topbar"><div>Dorsz 1.1</div><div></div></div>
+<div id="topbar"><div>Dorsz 1.2</div><div></div></div>
 
 <div id="chat"></div>
 
@@ -63,19 +63,29 @@ function addMessage(role,text){
   chat.scrollTop=chat.scrollHeight;
 }
 
-// logika Dorsza
+// analiza każdej wiadomości
 function analyze(text){
   const t=text.toLowerCase();
+
+  // powitania
   if(/hej|siemka|siema|elo|cześć|witaj/.test(t)) return "Hej! 👋 W czym mogę pomóc?";
-  if(/potrzebuję pomocy|nie wiem|nie wiem jak|nie umiem/.test(t)) return "Spokojnie 🙂. Opisz dokładnie, co chcesz zrobić, a pomogę krok po kroku.";
+  
+  // prośby o pomoc
+  if(/potrzebuję pomocy|nie wiem|nie wiem jak|nie umiem|helpp|pomocy|pls|szefie/.test(t))
+    return "Spokojnie 🙂. Opisz dokładnie, co potrzebujesz, a krok po kroku Ci pomogę.";
+
+  // techniczne komendy
   if(t.includes("plugin")) return "Na jaką wersję? Paper, Spigot, Velocity?";
   if(t.includes("skrypt")) return "Jaki skrypt chcesz zrobić? Java, JS, HTML, Minecraft, plugin?";
   if(t.includes("błąd") || t.includes("error")) return "Wklej kod albo logi – przeanalizuję.";
   if(t.includes("html")) return "Chcesz cały plik HTML czy tylko fragment?";
   if(t.includes("java")) return "Jaka wersja Javy i co dokładnie nie działa?";
+  
+  // test
   if(t==="test") return "To jest wiadomość testowa ✅";
-  if(t.length<3) return "Napisz trochę więcej 🙂";
-  return "Hmm… spróbuj napisać konkretnie, a pomogę.";
+
+  // każda inna wiadomość
+  return "Rozumiem! Opisz dokładniej, co potrzebujesz, a krok po kroku Ci pomogę 🙂";
 }
 
 // wyślij wiadomość
@@ -98,7 +108,7 @@ function sendMessage(){
     const reply=analyze(text);
     let idx=0;
     const interval=setInterval(()=>{
-      div.textContent=reply.slice(0,idx+1);
+      div.textContent=reply.slice(0, idx+1);
       chat.scrollTop=chat.scrollHeight;
       idx++;
       if(idx>=reply.length){
