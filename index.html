@@ -2,27 +2,77 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 3.0 – poprawione</title>
+<title>Dorsz 1.1 – Poprawiony</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;display:flex;height:100vh;}
-#sidebar{width:260px;background:#151515;padding:10px;display:flex;flex-direction:column;}
-#sidebar h2{margin-bottom:10px;}
-#sidebar button{margin-bottom:5px;padding:10px;background:#1f1f1f;color:#fff;border:none;cursor:pointer;}
-#sidebar button:hover{background:#2a2a2a;}
-#main{flex:1;display:flex;flex-direction:column;}
-#topbar{height:50px;background:#111;display:flex;justify-content:space-between;align-items:center;padding:0 10px;border-bottom:1px solid #222;}
-#chat{flex:1;padding:15px;overflow-y:auto;}
-.msg{margin-bottom:12px;padding:10px;border-radius:6px;max-width:80%;}
-.user{background:#1e3a5f;align-self:flex-end;}
-.assistant{background:#1f1f1f;align-self:flex-start;}
-#inputBar{display:flex;border-top:1px solid #222;}
-#input{flex:1;padding:12px;background:#111;color:#fff;border:none;outline:none;font-size:15px;}
-#sendBtn{padding:12px 20px;background:#2b2b2b;color:#fff;border:none;cursor:pointer;}
-#sendBtn:hover{background:#3a3a3a;}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0e0e0e;
+  color: #fff;
+  display: flex;
+  height: 100vh;
+}
+
+/* SIDEBAR */
+#sidebar {
+  width: 260px;
+  background: #151515;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+#sidebar h2 { margin-bottom: 10px; }
+#sidebar button {
+  background: #1f1f1f;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+#sidebar button:hover { background: #2a2a2a; }
+
+/* MAIN */
+#main { flex: 1; display: flex; flex-direction: column; }
+#topbar {
+  height: 50px;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border-bottom: 1px solid #222;
+}
+#chat { flex: 1; padding: 15px; overflow-y: auto; }
+.msg { margin-bottom: 12px; padding: 10px; border-radius: 6px; max-width: 80%; }
+.user { background: #1e3a5f; align-self: flex-end; }
+.assistant { background: #1f1f1f; align-self: flex-start; }
+
+/* INPUT */
+#inputBar { display: flex; border-top: 1px solid #222; }
+#input {
+  flex: 1;
+  padding: 12px;
+  background: #111;
+  color: #fff;
+  border: none;
+  outline: none;
+  font-size: 15px;
+}
+#sendBtn {
+  padding: 12px 20px;
+  background: #2b2b2b;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+#sendBtn:hover { background: #3a3a3a; }
 </style>
 </head>
+
 <body>
 
 <div id="sidebar">
@@ -31,7 +81,7 @@ body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;display:flex;hei
 </div>
 
 <div id="main">
-<div id="topbar"><div>Dorsz 3.0</div><div></div></div>
+<div id="topbar"><div>Dorsz 1.1</div><div></div></div>
 
 <div id="chat"></div>
 
@@ -45,85 +95,8 @@ body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;display:flex;hei
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 let memory = [];
-let isThinking = false; // blokada spamu
+let isThinking = false;
 
+// ENTER
 input.addEventListener("keydown", e => {
-    if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}
-});
-
-function addMessage(role,text){
-    const div=document.createElement("div");
-    div.className="msg "+role;
-    div.textContent=text;
-    chat.appendChild(div);
-    chat.scrollTop=chat.scrollHeight;
-}
-
-// Logika Dorsza
-function analyze(text){
-    const t=text.toLowerCase();
-
-    if(/hej|siemka|siema|elo|cześć|witaj/.test(t))
-        return "Hej! 👋 W czym mogę pomóc?";
-
-    if(/pomoc|nie wiem|nie wiem jak/.test(t))
-        return "Spokojnie 🙂. Opisz dokładnie, co chcesz zrobić, a pomogę krok po kroku.";
-
-    if(t.includes("skrypt")) return "Jaki skrypt chcesz zrobić? Java, JS, HTML, Minecraft, plugin?";
-    if(t.includes("plugin")) return "Na jaką wersję? Paper, Spigot, Velocity?";
-    if(t.includes("błąd") || t.includes("error")) return "Wklej kod albo logi – przeanalizuję.";
-    if(t.includes("html")) return "Chcesz cały plik HTML czy tylko fragment?";
-    if(t.includes("java")) return "Jaka wersja Javy i co dokładnie nie działa?";
-
-    if(t==="test") return "To jest wiadomość testowa ✅";
-    if(t.length<3) return "Napisz trochę więcej 🙂";
-
-    return "Hmm… powiedz coś więcej, abym mógł pomóc.";
-}
-
-// Wyślij wiadomość
-function sendMessage(){
-    if(isThinking) return; // blokada spamu
-    const text=input.value.trim();
-    if(!text) return;
-
-    addMessage("user",text);
-    memory.push({role:"user",text});
-    input.value="";
-
-    isThinking = true;
-    const div = document.createElement("div");
-    div.className = "msg assistant";
-    div.textContent = "Analizuję problem…";
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-
-    setTimeout(()=>{
-        const reply = analyze(text);
-        let idx=0;
-        const interval = setInterval(()=>{
-            div.textContent = reply.slice(0,idx+1);
-            chat.scrollTop = chat.scrollHeight;
-            idx++;
-            if(idx>=reply.length){
-                clearInterval(interval);
-                memory.push({role:"assistant",text:reply});
-                isThinking = false; // odblokuj wysyłanie
-            }
-        },30);
-    },200);
-}
-
-// Nowy czat
-function newChat(){
-    chat.innerHTML="";
-    memory=[];
-    addMessage("assistant","Nowy czat. W czym mogę pomóc?");
-}
-
-// Start
-addMessage("assistant","Hej! Jestem Dorsz 🐟 Jak mogę pomóc?");
-</script>
-
-</body>
-</html>
+  if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
