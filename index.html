@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 1.2</title>
+<title>Dorsz 1.3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -107,7 +107,7 @@ body {
 <!-- MAIN -->
 <div id="main">
   <div id="topbar">
-    <div>Dorsz 1.2</div>
+    <div>Dorsz 1.3</div>
     <div>
       <button>Udostępnij</button>
       <button>⋮</button>
@@ -146,9 +146,9 @@ function addMessage(role, text) {
 
 /* LOGIKA DORSZA */
 function analyze(text) {
-  const t = text.toLowerCase();
+  const t = text.toLowerCase().trim();
 
-  if (/^(hej|elo|siema|cześć)/.test(t)) return "Hej 👋 W czym mogę pomóc?";
+  if (/^(hej|siemka|siema|elo|cześć|witaj)/.test(t)) return "Hej 👋 W czym mogę pomóc?";
   if (t.includes("skrypt")) return "Jaki skrypt? Java, JS, HTML, Minecraft, plugin?";
   if (t.includes("plugin")) return "Na jaką wersję? Paper, Spigot, Velocity?";
   if (t.includes("błąd") || t.includes("error")) return "Wklej kod albo logi – przeanalizuję.";
@@ -183,7 +183,7 @@ function sendMessage() {
       idx++;
       if (idx >= reply.length) clearInterval(interval);
     }, 30);
-  }, 200); // krótka pauza przed startem "pisania"
+  }, 200);
 }
 
 /* NEW CHAT */
