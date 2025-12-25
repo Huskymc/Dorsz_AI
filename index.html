@@ -491,4 +491,159 @@
     #lightbox.show { display: flex; }
     #lightbox img { max-width: 95%; max-height: 95%; border-radius: 8px; }
     
-    #lightbox 
+    #lightbox .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s, width 0.3s;
+        z-index: 100;
+        width: var(--sidebar-width) !important;
+      }
+      #sidebar.open { transform: translateX(0); }
+      #sidebar.collapsed { width: var(--sidebar-width) !important; }
+      .prompts { grid-template-columns: 1fr; }
+      .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; display: none; }
+      .overlay.show { display: block; }
+      .collapse-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="modal hidden" id="settingsModal">
+  <div class="modal-box">
+    <h2><i class="fas fa-cog"></i> Ustawienia</h2>
+    <div class="setting">
+      <label><i class="fas fa-user"></i> Twoje imię:</label>
+      <input type="text" id="userNameInput" placeholder="np. Kacper, Ania...">
+    </div>
+    <div class="setting">
+      <label>Model Gemini:</label>
+      <select id="modelSelect">
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash (szybki)</option>
+        <option value="gemini-1.5-pro">Gemini 1.5 Pro (najmądrzejszy)</option>
+        <option value="gemini-1.0-pro">Gemini 1.0 Pro (stabilny)</option>
+      </select>
+    </div>
+    <button onclick="saveSettings()">Zapisz</button>
+    <button class="secondary" onclick="closeSettings()">Anuluj</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <button class="close-btn" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div id="sidebar">
+  <button class="collapse-btn" onclick="toggleCollapse()">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  <button class="new-chat" onclick="newChat()">
+    <i class="fas fa-plus"></i><span class="txt">Nowy czat</span>
+  </button>
+  <div class="mode-tabs">
+    <button class="mode-tab active chat-mode" id="chatTab" onclick="setMode('chat')">
+      <i class="fas fa-comment"></i><span>Czat</span>
+    </button>
+    <button class="mode-tab image-mode" id="imageTab" onclick="setMode('image')">
+      <i class="fas fa-image"></i><span>Obrazy</span>
+    </button>
+  </div>
+  <div id="history"></div>
+  <div class="sidebar-bottom">
+    <button class="sidebar-btn" onclick="clearAll()">
+      <i class="fas fa-trash"></i><span class="txt">Wyczyść wszystko</span>
+    </button>
+    <button class="sidebar-btn" onclick="openSettings()">
+      <i class="fas fa-cog"></i><span class="txt">Ustawienia</span>
+    </button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <button onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <span id="modeIndicator">🐟 Dorsz AI</span>
+    <div style="width: 40px;"></div>
+  </div>
+
+  <div id="welcome">
+    <div class="logo">🐟</div>
+    <h1>Dorsz AI</h1>
+    <p id="welcomeText">Jak mogę Ci dzisiaj pomóc?</p>
+    <div class="prompts" id="promptsContainer"></div>
+  </div>
+
+  <div id="chat"></div>
+
+  <div id="input-area">
+    <div class="input-wrapper">
+      <div id="attachments"></div>
+      <div class="input-box" id="inputBox">
+        <button id="attachBtn" onclick="document.getElementById('fileInput').click()" title="Dodaj plik">
+          <i class="fas fa-plus"></i>
+        </button>
+        <input type="file" id="fileInput" multiple accept=".txt,.js,.html,.css,.json,.py,.java,.c,.cpp,.md" onchange="handleFiles(this.files)">
+        <textarea id="input" rows="1" placeholder="Napisz wiadomość..." onkeydown="handleKey(event)"></textarea>
+        <button id="voiceBtn" onclick="toggleVoice()" title="Mów głosem">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+      <div class="input-info" id="inputInfo">Dorsz AI • Google Gemini • Enter = wyślij • 🎤 = mów</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== KONFIGURACJA ==========
+var API_KEY = 'AIzaSyAUhMzc40JclNn9Ndw5OwhBrK4DCmiaZFY';
+var IMAGE_API_URL = 'https://image.pollinations.ai/prompt/';
+
+var userName = localStorage.getItem('dorsz_username') || '';
+var model = localStorage.getItem('dorsz_model') || 'gemini-1.5-flash';
+var currentMode = 'chat';
+var chats = [];
+var currentChat = null;
+var messages = [];
+var generating = false;
+var attachedFiles = [];
+
+var recognition = null;
+var isRecording = false;
+var voiceText = '';
+
+try {
+  chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
+} catch(e) {
+  chats = [];
+}
+
+var CHAT_PROMPTS = [
+  { icon: 'fa-gamepad', text: 'Napisz plugin Minecraft' },
+  { icon: 'fa-code', text: 'Wyjaśnij async/await w JavaScript' },
+  { icon: 'fa-bug', text: 'Pomóż naprawić błąd 
