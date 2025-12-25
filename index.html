@@ -612,4 +612,173 @@ function addMsg(role, content) {
   for (var i = 0; i < pres.length; i++) {
     (function(pre) {
       var btn = document.createElement('button');
-      btn.className = 
+      btn.className = 'copy-btn';
+      btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj';
+      btn.onclick = function() {
+        var code = pre.querySelector('code');
+        if (code) {
+          navigator.clipboard.writeText(code.textContent);
+          btn.innerHTML = '<i class="fas fa-check"></i> OK!';
+          setTimeout(function() {
+            btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj';
+          }, 2000);
+        }
+      };
+      pre.appendChild(btn);
+    })(pres[i]);
+  }
+  
+  return div;
+}
+
+function addTyping() {
+  var div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.innerHTML = '<div class="msg-inner"><div class="avatar assistant">🐟</div><div class="msg-text"><div class="typing"><span></span><span></span><span></span></div></div></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function format(text) {
+  if (!text) return '';
+  
+  // Escape HTML
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // Code blocks
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, function(m, lang, code) {
+    return '<pre><code class="language-' + lang + '">' + code.trim() + '</code></pre>';
+  });
+  
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  
+  // Bold
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  
+  // Line breaks
+  text = text.replace(/\n/g, '<br>');
+  
+  return text;
+}
+
+function saveChat() {
+  if (!messages.length) return;
+  
+  var title = messages[0].content.substring(0, 35);
+  var data = { title: title, messages: messages.slice(), date: Date.now() };
+  
+  if (currentChat !== null) {
+    chats[currentChat] = data;
+  } else {
+    currentChat = chats.length;
+    chats.push(data);
+  }
+  
+  if (chats.length > 30) {
+    chats = chats.slice(-30);
+  }
+  
+  localStorage.setItem('dorsz_chats', JSON.stringify(chats));
+  renderHistory();
+}
+
+function loadChat(i) {
+  currentChat = i;
+  messages = chats[i].messages.slice();
+  
+  welcome.classList.add('hidden');
+  chat.classList.add('active');
+  chat.innerHTML = '';
+  
+  for (var j = 0; j < messages.length; j++) {
+    addMsg(messages[j].role, messages[j].content);
+  }
+  renderHistory();
+  closeSidebar();
+}
+
+function renderHistory() {
+  historyEl.innerHTML = '';
+  
+  for (var i = chats.length - 1; i >= 0; i--) {
+    (function(index) {
+      var c = chats[index];
+      var div = document.createElement('div');
+      div.className = 'history-item' + (index === currentChat ? ' active' : '');
+      div.innerHTML = '<i class="fas fa-comment" style="margin-right:8px;opacity:0.5"></i>' + c.title;
+      div.onclick = function() { loadChat(index); };
+      historyEl.appendChild(div);
+    })(i);
+  }
+}
+
+function newChat() {
+  currentChat = null;
+  messages = [];
+  chat.innerHTML = '';
+  chat.classList.remove('active');
+  welcome.classList.remove('hidden');
+  renderHistory();
+  closeSidebar();
+}
+
+function clearAll() {
+  if (!confirm('Usunąć całą historię?')) return;
+  chats = [];
+  localStorage.removeItem('dorsz_chats');
+  newChat();
+}
+
+function openSettings() {
+  document.getElementById('keySettings').value = apiKey;
+  document.getElementById('modelSelect').value = model;
+  settingsModal.classList.remove('hidden');
+}
+
+function closeSettings() {
+  settingsModal.classList.add('hidden');
+}
+
+function saveSettings() {
+  var key = document.getElementById('keySettings').value.trim();
+  if (key) {
+    apiKey = key;
+    localStorage.setItem('dorsz_key', key);
+  }
+  model = document.getElementById('modelSelect').value;
+  localStorage.setItem('dorsz_model', model);
+  closeSettings();
+}
+
+function resize() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+  if (input.value.trim()) {
+    sendBtn.classList.add('active');
+  } else {
+    sendBtn.classList.remove('active');
+  }
+}
+
+function toggleSidebar() {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+function use(text) {
+  input.value = text;
+  resize();
+  input.focus();
+}
+
+init();
+</script>
+</body>
+</html>
