@@ -5,38 +5,481 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dorsz AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg-main: #343541;
+      --bg-sidebar: #202123;
+      --bg-input: #40414f;
+      --bg-msg-ai: #444654;
+      --text: #ececf1;
+      --text-dim: #8e8ea0;
+      --accent: #19c37d;
+      --border: rgba(255,255,255,0.1);
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-main);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+    }
+    
+    /* SIDEBAR */
+    #sidebar {
+      width: 260px;
+      background: var(--bg-sidebar);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .new-chat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .new-chat:hover { background: rgba(255,255,255,0.1); }
+    
+    #history {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 16px;
+    }
+    
+    .history-item {
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .history-item:hover { background: rgba(255,255,255,0.1); }
+    .history-item.active { background: rgba(255,255,255,0.15); }
+    
+    .sidebar-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+    }
+    
+    .sidebar-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+    }
+    
+    .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
+    
+    /* MAIN */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    
+    /* TOPBAR */
+    #topbar {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    #topbar button {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    
+    #topbar button:hover { background: rgba(255,255,255,0.1); }
+    
+    /* WELCOME */
+    #welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    
+    #welcome.hidden { display: none; }
+    
+    .logo { font-size: 64px; margin-bottom: 16px; }
+    #welcome h1 { font-size: 28px; margin-bottom: 8px; }
+    #welcome > p { color: var(--text-dim); margin-bottom: 24px; }
+    
+    .prompts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 600px;
+    }
+    
+    .prompt {
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+    }
+    
+    .prompt:hover { background: rgba(255,255,255,0.1); }
+    .prompt i { color: var(--accent); margin-right: 8px; }
+    
+    /* CHAT */
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      display: none;
+    }
+    
+    #chat.active { display: block; }
+    
+    .msg {
+      padding: 24px;
+    }
+    
+    .msg.user { background: var(--bg-main); }
+    .msg.assistant { background: var(--bg-msg-ai); }
+    
+    .msg-inner {
+      max-width: 768px;
+      margin: 0 auto;
+      display: flex;
+      gap: 16px;
+    }
+    
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    
+    .avatar.user { background: #5436DA; }
+    .avatar.assistant { background: var(--accent); }
+    
+    .msg-text {
+      flex: 1;
+      line-height: 1.7;
+      overflow-wrap: break-word;
+    }
+    
+    .msg-text p { margin-bottom: 12px; }
+    .msg-text p:last-child { margin-bottom: 0; }
+    
+    .msg-text pre {
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 12px 0;
+      position: relative;
+    }
+    
+    .msg-text code {
+      font-family: 'Consolas', monospace;
+      font-size: 14px;
+    }
+    
+    .msg-text :not(pre) > code {
+      background: rgba(0,0,0,0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .msg-text ul, .msg-text ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    
+    .msg-text li { margin-bottom: 6px; }
+    .msg-text strong { font-weight: 600; }
+    
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 4px;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .copy-btn:hover { background: rgba(255,255,255,0.2); color: var(--text); }
+    
+    /* TYPING */
+    .typing {
+      display: inline-flex;
+      gap: 4px;
+    }
+    
+    .typing span {
+      width: 8px;
+      height: 8px;
+      background: var(--text);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+    
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+    
+    /* INPUT */
+    #input-area {
+      padding: 16px 24px 24px;
+    }
+    
+    .input-box {
+      max-width: 768px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-end;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+    
+    .input-box:focus-within {
+      border-color: rgba(255,255,255,0.3);
+    }
+    
+    #input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      resize: none;
+      max-height: 200px;
+      line-height: 1.5;
+    }
+    
+    #input::placeholder { color: var(--text-dim); }
+    
+    #send {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    
+    #send:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+    #send.active { color: var(--accent); }
+    #send:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .input-info {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 12px;
+    }
+    
+    /* MODAL */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal.hidden { display: none; }
+    
+    .modal-box {
+      background: var(--bg-sidebar);
+      padding: 32px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .modal-box h2 { margin-bottom: 16px; }
+    .modal-box p { color: var(--text-dim); margin-bottom: 16px; font-size: 14px; }
+    
+    .modal-box input, .modal-box select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    .modal-box button {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    
+    .modal-box button:hover { opacity: 0.9; }
+    
+    .modal-box button.secondary {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      margin-top: 8px;
+    }
+    
+    .modal-box a { color: var(--accent); }
+    
+    .modal-box label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    
+    .setting { margin-bottom: 16px; }
+    
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    
+    /* MOBILE */
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+        z-index: 100;
+      }
+      
+      #sidebar.open { transform: translateX(0); }
+      
+      .prompts { grid-template-columns: 1fr; }
+      
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 99;
+        display: none;
+      }
+      
+      .overlay.show { display: block; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- MODAL API KEY -->
-<div id="apiModal" class="modal">
-  <div class="modal-content">
-    <h2>🐟 Witaj w Dorsz AI!</h2>
-    <p>Podaj swój klucz API Groq aby rozpocząć:</p>
-    <input type="password" id="apiKeyInput" placeholder="gsk_xxxxxxxxxxxxxxxx">
-    <button onclick="saveApiKey()">Zapisz i rozpocznij</button>
-    <p class="modal-info">
+<!-- API KEY MODAL -->
+<div class="modal" id="keyModal">
+  <div class="modal-box">
+    <h2>🐟 Dorsz AI</h2>
+    <p>Podaj klucz API Groq aby rozpocząć:</p>
+    <input type="password" id="keyInput" placeholder="gsk_xxxxxxxxxxxxxx">
+    <button onclick="saveKey()">Zapisz i rozpocznij</button>
+    <p style="margin-top:16px;text-align:center">
       <a href="https://console.groq.com/keys" target="_blank">
-        → Zdobądź darmowy klucz tutaj
+        👉 Zdobądź darmowy klucz tutaj
       </a>
     </p>
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal hidden" id="settingsModal">
+  <div class="modal-box">
+    <h2><i class="fas fa-cog"></i> Ustawienia</h2>
+    
+    <div class="setting">
+      <label>Model AI:</label>
+      <select id="modelSelect">
+        <option value="llama-3.1-70b-versatile">Llama 3.1 70B (najlepszy)</option>
+        <option value="llama-3.1-8b-instant">Llama 3.1 8B (szybszy)</option>
+        <option value="llama3-70b-8192">Llama 3 70B</option>
+        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+      </select>
+    </div>
+    
+    <div class="setting">
+      <label>Klucz API:</label>
+      <input type="password" id="keySettings" placeholder="gsk_xxx">
+    </div>
+    
+    <button onclick="saveSettings()">Zapisz</button>
+    <button class="secondary" onclick="closeSettings()">Anuluj</button>
+  </div>
+</div>
+
+<!-- OVERLAY MOBILE -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
 <!-- SIDEBAR -->
 <div id="sidebar">
-  <button class="new-chat-btn" onclick="newChat()">
+  <button class="new-chat" onclick="newChat()">
     <i class="fas fa-plus"></i> Nowy czat
   </button>
   
-  <div class="chat-history" id="chatHistory"></div>
+  <div id="history"></div>
   
-  <div class="sidebar-footer">
-    <button class="sidebar-btn" onclick="clearHistory()">
-      <i class="fas fa-trash"></i> Wyczyść historię
+  <div class="sidebar-bottom">
+    <button class="sidebar-btn" onclick="clearAll()">
+      <i class="fas fa-trash"></i> Wyczyść wszystko
     </button>
-    <button class="sidebar-btn" onclick="showSettings()">
+    <button class="sidebar-btn" onclick="openSettings()">
       <i class="fas fa-cog"></i> Ustawienia
     </button>
   </div>
@@ -45,89 +488,380 @@
 <!-- MAIN -->
 <div id="main">
   
-  <!-- TOPBAR -->
   <div id="topbar">
-    <button onclick="toggleSidebar()">
-      <i class="fas fa-bars"></i>
-    </button>
-    <span class="model-name">🐟 Dorsz AI</span>
-    <button onclick="showSettings()">
-      <i class="fas fa-ellipsis-v"></i>
-    </button>
+    <button onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <span style="font-weight:600">🐟 Dorsz AI</span>
+    <button onclick="openSettings()"><i class="fas fa-cog"></i></button>
   </div>
-
+  
   <!-- WELCOME -->
   <div id="welcome">
-    <div class="welcome-logo">🐟</div>
+    <div class="logo">🐟</div>
     <h1>Dorsz AI</h1>
     <p>Jak mogę Ci dzisiaj pomóc?</p>
     
-    <div class="suggestions">
-      <div class="suggestion" onclick="usePrompt('Napisz plugin Minecraft który teleportuje gracza')">
-        <i class="fas fa-gamepad"></i>
-        <span>Napisz plugin Minecraft</span>
+    <div class="prompts">
+      <div class="prompt" onclick="use('Napisz plugin Minecraft który teleportuje gracza do spawnu')">
+        <i class="fas fa-gamepad"></i> Plugin Minecraft
       </div>
-      <div class="suggestion" onclick="usePrompt('Wyjaśnij mi jak działa async/await w JavaScript')">
-        <i class="fas fa-code"></i>
-        <span>Wyjaśnij async/await</span>
+      <div class="prompt" onclick="use('Wyjaśnij mi jak działa async/await w JavaScript')">
+        <i class="fas fa-code"></i> Wyjaśnij async/await
       </div>
-      <div class="suggestion" onclick="usePrompt('Pomóż mi naprawić błąd w kodzie')">
-        <i class="fas fa-bug"></i>
-        <span>Napraw błąd w kodzie</span>
+      <div class="prompt" onclick="use('Mam błąd w kodzie, pomóż mi go naprawić')">
+        <i class="fas fa-bug"></i> Napraw błąd
       </div>
-      <div class="suggestion" onclick="usePrompt('Stwórz stronę HTML z formularzem kontaktowym')">
-        <i class="fas fa-globe"></i>
-        <span>Stwórz stronę HTML</span>
+      <div class="prompt" onclick="use('Stwórz stronę HTML z nowoczesnym designem')">
+        <i class="fas fa-globe"></i> Stwórz stronę HTML
       </div>
     </div>
   </div>
-
+  
   <!-- CHAT -->
   <div id="chat"></div>
-
+  
   <!-- INPUT -->
-  <div id="inputArea">
-    <div class="input-container">
-      <textarea 
-        id="input" 
-        placeholder="Napisz wiadomość..." 
-        rows="1"
-        onkeydown="handleKey(event)"
-      ></textarea>
-      <button id="sendBtn" onclick="sendMessage()">
-        <i class="fas fa-paper-plane"></i>
-      </button>
+  <div id="input-area">
+    <div class="input-box">
+      <textarea id="input" rows="1" placeholder="Napisz wiadomość..."></textarea>
+      <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
     </div>
-    <p class="input-info">Dorsz AI używa Llama 3 przez Groq API</p>
+    <div class="input-info">Dorsz AI • Llama 3.1 przez Groq</div>
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div id="settingsModal" class="modal hidden">
-  <div class="modal-content">
-    <h2><i class="fas fa-cog"></i> Ustawienia</h2>
-    
-    <div class="setting-group">
-      <label>Model AI:</label>
-      <select id="modelSelect">
-        <option value="llama-3.1-70b-versatile">Llama 3.1 70B (najlepszy)</option>
-        <option value="llama-3.1-8b-instant">Llama 3.1 8B (szybszy)</option>
-        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-      </select>
-    </div>
-    
-    <div class="setting-group">
-      <label>Klucz API:</label>
-      <input type="password" id="apiKeySettings" placeholder="gsk_xxx...">
-    </div>
-    
-    <div class="modal-buttons">
-      <button onclick="saveSettings()">Zapisz</button>
-      <button class="secondary" onclick="closeSettings()">Anuluj</button>
-    </div>
-  </div>
-</div>
+<script>
+// ============ KONFIGURACJA ============
+const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-<script src="js/app.js"></script>
+const SYSTEM = `Jesteś Dorsz AI - inteligentny asystent programisty.
+
+ZASADY:
+- Odpowiadaj po polsku (chyba że user pisze inaczej)
+- Formatuj kod w blokach \`\`\`język
+- Bądź konkretny i pomocny
+- Używaj emoji gdy pasuje
+
+SPECJALIZACJE:
+- JavaScript, TypeScript, Node.js
+- Java (w tym pluginy Minecraft - Spigot/Paper)
+- Python
+- HTML, CSS
+- Bazy danych
+- Git i GitHub`;
+
+// ============ STAN ============
+let apiKey = localStorage.getItem('dorsz_key') || '';
+let model = localStorage.getItem('dorsz_model') || 'llama-3.1-70b-versatile';
+let chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
+let currentChat = null;
+let messages = [];
+let generating = false;
+
+// ============ ELEMENTY ============
+const $ = id => document.getElementById(id);
+const chat = $('chat');
+const input = $('input');
+const sendBtn = $('send');
+const welcome = $('welcome');
+const history = $('history');
+const keyModal = $('keyModal');
+const settingsModal = $('settingsModal');
+const sidebar = $('sidebar');
+const overlay = $('overlay');
+
+// ============ INIT ============
+function init() {
+  if (!apiKey) {
+    keyModal.classList.remove('hidden');
+  } else {
+    keyModal.classList.add('hidden');
+  }
+  
+  $('modelSelect').value = model;
+  renderHistory();
+  
+  input.addEventListener('input', resize);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+}
+
+// ============ API KEY ============
+function saveKey() {
+  const key = $('keyInput').value.trim();
+  if (!key || !key.startsWith('gsk_')) {
+    alert('Podaj poprawny klucz API Groq (zaczyna się od gsk_)');
+    return;
+  }
+  apiKey = key;
+  localStorage.setItem('dorsz_key', key);
+  keyModal.classList.add('hidden');
+}
+
+// ============ WYSYŁANIE ============
+async function send() {
+  const text = input.value.trim();
+  if (!text || generating) return;
+  
+  welcome.classList.add('hidden');
+  chat.classList.add('active');
+  
+  messages.push({ role: 'user', content: text });
+  addMsg('user', text);
+  
+  input.value = '';
+  resize();
+  
+  generating = true;
+  sendBtn.disabled = true;
+  const typing = addTyping();
+  
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: SYSTEM },
+          ...messages
+        ],
+        temperature: 0.7,
+        max_tokens: 4096,
+        stream: false
+      })
+    });
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `Błąd ${res.status}`);
+    }
+    
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    
+    typing.remove();
+    messages.push({ role: 'assistant', content: reply });
+    addMsg('assistant', reply);
+    saveChat();
+    
+  } catch (err) {
+    typing.remove();
+    addMsg('assistant', `❌ **Błąd:** ${err.message}\n\nSprawdź czy klucz API jest poprawny.`);
+  } finally {
+    generating = false;
+    sendBtn.disabled = false;
+  }
+}
+
+// ============ WIADOMOŚCI ============
+function addMsg(role, content) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  
+  div.innerHTML = `
+    <div class="msg-inner">
+      <div class="avatar ${role}">
+        ${role === 'user' ? '<i class="fas fa-user"></i>' : '🐟'}
+      </div>
+      <div class="msg-text">${format(content)}</div>
+    </div>
+  `;
+  
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  
+  // Dodaj przyciski kopiowania do bloków kodu
+  div.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj';
+    btn.onclick = () => {
+      navigator.clipboard.writeText(pre.querySelector('code').textContent);
+      btn.innerHTML = '<i class="fas fa-check"></i> Skopiowano!';
+      setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj', 2000);
+    };
+    pre.appendChild(btn);
+  });
+  
+  return div;
+}
+
+function addTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.innerHTML = `
+    <div class="msg-inner">
+      <div class="avatar assistant">🐟</div>
+      <div class="msg-text">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  `;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+// ============ FORMATOWANIE ============
+function format(text) {
+  // Bloki kodu
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    return `<pre><code class="language-${lang}">${esc(code.trim())}</code></pre>`;
+  });
+  
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  
+  // Bold
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  
+  // Italic
+  text = text.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+  
+  // Listy
+  text = text.replace(/^\s*[-•]\s+(.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+  text = text.replace(/<\/ul>\s*<ul>/g, '');
+  
+  // Paragrafy
+  const parts = text.split(/\n\n+/);
+  text = parts.map(p => {
+    p = p.trim();
+    if (!p) return '';
+    if (p.startsWith('<pre>') || p.startsWith('<ul>')) return p;
+    return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+  }).join('');
+  
+  return text;
+}
+
+function esc(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// ============ HISTORIA ============
+function saveChat() {
+  if (!messages.length) return;
+  
+  const title = messages[0].content.slice(0, 35);
+  const data = { title, messages: [...messages], date: Date.now() };
+  
+  if (currentChat !== null) {
+    chats[currentChat] = data;
+  } else {
+    currentChat = chats.length;
+    chats.push(data);
+  }
+  
+  // Max 30 czatów
+  if (chats.length > 30) chats = chats.slice(-30);
+  
+  localStorage.setItem('dorsz_chats', JSON.stringify(chats));
+  renderHistory();
+}
+
+function loadChat(i) {
+  currentChat = i;
+  messages = [...chats[i].messages];
+  
+  welcome.classList.add('hidden');
+  chat.classList.add('active');
+  chat.innerHTML = '';
+  
+  messages.forEach(m => addMsg(m.role, m.content));
+  renderHistory();
+  closeSidebar();
+}
+
+function renderHistory() {
+  history.innerHTML = '';
+  
+  chats.slice().reverse().forEach((c, i) => {
+    const realIndex = chats.length - 1 - i;
+    const div = document.createElement('div');
+    div.className = `history-item ${realIndex === currentChat ? 'active' : ''}`;
+    div.innerHTML = `<i class="fas fa-comment" style="margin-right:8px;opacity:0.5"></i>${esc(c.title)}`;
+    div.onclick = () => loadChat(realIndex);
+    history.appendChild(div);
+  });
+}
+
+function newChat() {
+  currentChat = null;
+  messages = [];
+  chat.innerHTML = '';
+  chat.classList.remove('active');
+  welcome.classList.remove('hidden');
+  renderHistory();
+  closeSidebar();
+}
+
+function clearAll() {
+  if (!confirm('Usunąć całą historię?')) return;
+  chats = [];
+  localStorage.removeItem('dorsz_chats');
+  newChat();
+}
+
+// ============ USTAWIENIA ============
+function openSettings() {
+  $('keySettings').value = apiKey;
+  $('modelSelect').value = model;
+  settingsModal.classList.remove('hidden');
+}
+
+function closeSettings() {
+  settingsModal.classList.add('hidden');
+}
+
+function saveSettings() {
+  const key = $('keySettings').value.trim();
+  if (key) {
+    apiKey = key;
+    localStorage.setItem('dorsz_key', key);
+  }
+  
+  model = $('modelSelect').value;
+  localStorage.setItem('dorsz_model', model);
+  
+  closeSettings();
+}
+
+// ============ UI ============
+function resize() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+  sendBtn.classList.toggle('active', input.value.trim().length > 0);
+}
+
+function toggleSidebar() {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+function use(text) {
+  input.value = text;
+  resize();
+  input.focus();
+}
+
+// START
+init();
+</script>
 </body>
 </html>
