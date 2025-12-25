@@ -104,4 +104,82 @@ function init() {
 
 function setMode(mode) {
   currentMode = mode;
-  document.
+  document.getElementById('chatTab').classList.toggle('active', mode === 'chat');
+  document.getElementById('imageTab').classList.toggle('active', mode === 'image');
+}
+
+function handleKey(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+
+async function send() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if(!text) return;
+
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('chat').classList.add('active');
+  
+  addMsg('user', text);
+  input.value = '';
+  
+  const loading = addMsg('assistant', '<i>Dorsz myśli...</i>');
+
+  if(currentMode === 'chat') {
+    try {
+      // Zmieniony endpoint na v1 (najbardziej stabilny dla Flash)
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: text }] }]
+        })
+      });
+
+      const data = await response.json();
+      
+      if(data.error) {
+        loading.querySelector('.msg-text').innerHTML = `<span style="color:#ff6b6b;">❌ Błąd Google: ${data.error.message}</span>`;
+        return;
+      }
+
+      const reply = data.candidates[0].content.parts[0].text;
+      loading.querySelector('.msg-text').innerText = reply;
+      saveToHistory(text, reply);
+
+    } catch(err) {
+      loading.querySelector('.msg-text').innerHTML = `<span style="color:#ff6b6b;">❌ Błąd połączenia. Sprawdź czy klucz API jest poprawny w ustawieniach.</span>`;
+    }
+  } else {
+    // Tryb obrazu (Pollinations)
+    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(text)}?width=1024&height=1024&nologo=true`;
+    loading.querySelector('.msg-text').innerHTML = `<img src="${imgUrl}" class="generated-image" onload="this.style.opacity=1">`;
+  }
+}
+
+function addMsg(role, text) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-inner"><div class="avatar ${role}">${role==='user'?'U':'🐟'}</div><div class="msg-text">${text}</div></div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function saveToHistory(q, a) {
+  let chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
+  chats.unshift({title: q.substring(0,20), q, a});
+  localStorage.setItem('dorsz_chats', JSON.stringify(chats.slice(0,10)));
+}
+
+function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
+function saveSettings() {
+  const newKey = document.getElementById('apiKeyInput').value.trim();
+  localStorage.setItem('dorsz_api_key', newKey);
+  location.reload();
+}
+function newChat() { location.reload(); }
+
+init();
+</script>
+</body>
+</html>
