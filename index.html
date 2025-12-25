@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 1.1</title>
+<title>Dorsz 1.2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -26,9 +26,7 @@ body {
   flex-direction: column;
 }
 
-#sidebar h2 {
-  margin: 0 0 10px;
-}
+#sidebar h2 { margin: 0 0 10px; }
 
 #sidebar button {
   background: #1f1f1f;
@@ -39,16 +37,10 @@ body {
   cursor: pointer;
 }
 
-#sidebar button:hover {
-  background: #2a2a2a;
-}
+#sidebar button:hover { background: #2a2a2a; }
 
 /* MAIN */
-#main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+#main { flex: 1; display: flex; flex-direction: column; }
 
 #topbar {
   height: 50px;
@@ -73,21 +65,12 @@ body {
   max-width: 80%;
 }
 
-.user {
-  background: #1e3a5f;
-  align-self: flex-end;
-}
+.user { background: #1e3a5f; align-self: flex-end; }
 
-.assistant {
-  background: #1f1f1f;
-  align-self: flex-start;
-}
+.assistant { background: #1f1f1f; align-self: flex-start; }
 
 /* INPUT */
-#inputBar {
-  display: flex;
-  border-top: 1px solid #222;
-}
+#inputBar { display: flex; border-top: 1px solid #222; }
 
 #input {
   flex: 1;
@@ -107,9 +90,7 @@ body {
   cursor: pointer;
 }
 
-#sendBtn:hover {
-  background: #3a3a3a;
-}
+#sendBtn:hover { background: #3a3a3a; }
 </style>
 </head>
 
@@ -125,9 +106,8 @@ body {
 
 <!-- MAIN -->
 <div id="main">
-
   <div id="topbar">
-    <div>Dorsz 1.1</div>
+    <div>Dorsz 1.2</div>
     <div>
       <button>Udostępnij</button>
       <button>⋮</button>
@@ -140,13 +120,12 @@ body {
     <input id="input" placeholder="Napisz do Dorsza…" />
     <button id="sendBtn" onclick="sendMessage()">Wyślij</button>
   </div>
-
 </div>
 
 <script>
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
-const memory = [];
+let memory = [];
 
 /* ENTER */
 input.addEventListener("keydown", e => {
@@ -169,26 +148,13 @@ function addMessage(role, text) {
 function analyze(text) {
   const t = text.toLowerCase();
 
-  if (/^(hej|elo|siema|cześć)/.test(t))
-    return "Hej 👋 W czym mogę pomóc?";
-
-  if (t.includes("skrypt"))
-    return "Jaki skrypt? Java, JS, HTML, Minecraft, plugin?";
-
-  if (t.includes("plugin"))
-    return "Na jaką wersję? Paper, Spigot, Velocity?";
-
-  if (t.includes("błąd") || t.includes("error"))
-    return "Wklej kod albo logi – przeanalizuję.";
-
-  if (t.includes("html"))
-    return "Chcesz cały plik HTML czy tylko fragment?";
-
-  if (t.includes("java"))
-    return "Jaka wersja Javy i co dokładnie nie działa?";
-
-  if (t.length < 3)
-    return "Napisz trochę więcej 🙂";
+  if (/^(hej|elo|siema|cześć)/.test(t)) return "Hej 👋 W czym mogę pomóc?";
+  if (t.includes("skrypt")) return "Jaki skrypt? Java, JS, HTML, Minecraft, plugin?";
+  if (t.includes("plugin")) return "Na jaką wersję? Paper, Spigot, Velocity?";
+  if (t.includes("błąd") || t.includes("error")) return "Wklej kod albo logi – przeanalizuję.";
+  if (t.includes("html")) return "Chcesz cały plik HTML czy tylko fragment?";
+  if (t.includes("java")) return "Jaka wersja Javy i co dokładnie nie działa?";
+  if (t.length < 3) return "Napisz trochę więcej 🙂";
 
   return "Rozumiem. Opisz dokładniej, co chcesz zrobić.";
 }
@@ -202,17 +168,28 @@ function sendMessage() {
   memory.push({ role: "user", text });
   input.value = "";
 
+  // Dodaj tymczasową wiadomość AI tylko raz
+  const aiIndex = memory.push({ role: "assistant", text: "Analizuję problem…" }) - 1;
+  addMessage("assistant", "Analizuję problem…");
+
+  // Animacja literka po literce
   setTimeout(() => {
     const reply = analyze(text);
-    memory.push({ role: "assistant", text: reply });
-    addMessage("assistant", reply);
-  }, 300);
+    let idx = 0;
+    const interval = setInterval(() => {
+      memory[aiIndex].text = reply.slice(0, idx + 1);
+      chat.lastChild.textContent = memory[aiIndex].text;
+      chat.scrollTop = chat.scrollHeight;
+      idx++;
+      if (idx >= reply.length) clearInterval(interval);
+    }, 30);
+  }, 200); // krótka pauza przed startem "pisania"
 }
 
 /* NEW CHAT */
 function newChat() {
   chat.innerHTML = "";
-  memory.length = 0;
+  memory = [];
   addMessage("assistant", "Nowy czat. W czym mogę pomóc?");
 }
 
