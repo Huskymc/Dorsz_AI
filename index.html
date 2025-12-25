@@ -6,180 +6,390 @@
   <title>Dorsz AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Styl pozostaje bez zmian dla czytelności odpowiedzi - użyj tego samego CSS co wcześniej */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --bg-main: #343541; --bg-sidebar: #202123; --bg-input: #40414f; --bg-msg-ai: #444654; --text: #ececf1; --text-dim: #8e8ea0; --accent: #19c37d; --accent-image: #a855f7; --border: rgba(255,255,255,0.1); --sidebar-width: 260px; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg-main); color: var(--text); height: 100vh; display: flex; }
-    #sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); padding: 8px; display: flex; flex-direction: column; transition: width 0.3s; overflow: hidden; }
-    #sidebar.collapsed { width: 60px; }
-    #sidebar.collapsed span, #sidebar.collapsed .txt { display: none; }
-    .new-chat { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--text); cursor: pointer; margin-bottom: 10px; }
-    .mode-tabs { display: flex; gap: 4px; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px; }
-    .mode-tab { flex: 1; padding: 8px; border: none; border-radius: 6px; background: none; color: var(--text-dim); cursor: pointer; }
-    .mode-tab.active { background: var(--bg-input); color: var(--text); }
-    #history { flex: 1; overflow-y: auto; }
-    .history-item { padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .history-item:hover { background: rgba(255,255,255,0.1); }
-    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    #topbar { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--border); justify-content: space-between; }
-    #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    #welcome.hidden { display: none; }
-    #chat { flex: 1; overflow-y: auto; display: none; padding-bottom: 20px; }
-    #chat.active { display: block; }
-    .msg { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); }
-    .msg.assistant { background: var(--bg-msg-ai); }
-    .msg-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 15px; }
-    .avatar { width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .avatar.user { background: #5436da; }
-    .avatar.assistant { background: var(--accent); }
-    .msg-text { line-height: 1.6; flex: 1; }
-    #input-area { padding: 20px; }
-    .input-box { max-width: 800px; margin: 0 auto; background: var(--bg-input); border-radius: 12px; display: flex; padding: 10px; align-items: flex-end; }
-    #input { flex: 1; background: none; border: none; color: white; resize: none; padding: 5px; outline: none; font-family: inherit; font-size: 16px; }
-    #send { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 5px 10px; font-size: 20px; }
-    .generated-image { max-width: 100%; border-radius: 8px; margin-top: 10px; }
-  </style>
-</head>
-<body>
-
-<div id="sidebar">
-  <button class="new-chat" onclick="newChat()"><i class="fas fa-plus"></i><span class="txt">Nowy czat</span></button>
-  <div class="mode-tabs">
-    <button class="mode-tab active" id="chatTab" onclick="setMode('chat')">Czat</button>
-    <button class="mode-tab" id="imageTab" onclick="setMode('image')">Obrazy</button>
-  </div>
-  <div id="history"></div>
-</div>
-
-<div id="main">
-  <div id="topbar">
-    <span>🐟 Dorsz AI</span>
-    <button onclick="openSettings()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-cog"></i></button>
-  </div>
-
-  <div id="welcome">
-    <div style="font-size: 50px;">🐟</div>
-    <h1>Dorsz AI</h1>
-    <p>Wklej swój klucz API w ustawieniach, aby zacząć.</p>
-  </div>
-
-  <div id="chat"></div>
-
-  <div id="input-area">
-    <div class="input-box">
-      <textarea id="input" rows="1" placeholder="Napisz coś..." onkeydown="handleKey(event)"></textarea>
-      <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
-    </div>
-  </div>
-</div>
-
-<div id="settingsModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:100;">
-  <div style="background:#202123; padding:30px; border-radius:15px; width:90%; max-width:400px;">
-    <h3>Ustawienia</h3>
-    <p style="font-size:12px; margin:10px 0;">Klucz API z Google AI Studio:</p>
-    <input type="password" id="apiKeyInput" style="width:100%; padding:10px; margin-bottom:20px; background:#40414f; border:1px solid #555; color:white; border-radius:5px;">
-    <button onclick="saveSettings()" style="width:100%; padding:10px; background:#19c37d; border:none; border-radius:5px; cursor:pointer;">Zapisz i Odśwież</button>
-  </div>
-</div>
-
-<script>
-// Pobieranie klucza z localStorage lub Twojego domyślnego
-var API_KEY = localStorage.getItem('dorsz_api_key') || 'AIzaSyAUhMzc40JclNn9Ndw5OwhBrK4DCmiaZFY';
-var currentMode = 'chat';
-var messages = [];
-
-function init() {
-  document.getElementById('apiKeyInput').value = API_KEY;
-  // Wczytaj historię z pamięci
-  const saved = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
-  const historyDiv = document.getElementById('history');
-  saved.forEach((c, i) => {
-    const item = document.createElement('div');
-    item.className = 'history-item';
-    item.innerText = c.title;
-    item.onclick = () => loadChat(i);
-    historyDiv.appendChild(item);
-  });
-}
-
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('chatTab').classList.toggle('active', mode === 'chat');
-  document.getElementById('imageTab').classList.toggle('active', mode === 'image');
-}
-
-function handleKey(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
-
-async function send() {
-  const input = document.getElementById('input');
-  const text = input.value.trim();
-  if(!text) return;
-
-  document.getElementById('welcome').classList.add('hidden');
-  document.getElementById('chat').classList.add('active');
-  
-  addMsg('user', text);
-  input.value = '';
-  
-  const loading = addMsg('assistant', '<i>Dorsz myśli...</i>');
-
-  if(currentMode === 'chat') {
-    try {
-      // Zmieniony endpoint na v1 (najbardziej stabilny dla Flash)
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: text }] }]
-        })
-      });
-
-      const data = await response.json();
-      
-      if(data.error) {
-        loading.querySelector('.msg-text').innerHTML = `<span style="color:#ff6b6b;">❌ Błąd Google: ${data.error.message}</span>`;
-        return;
-      }
-
-      const reply = data.candidates[0].content.parts[0].text;
-      loading.querySelector('.msg-text').innerText = reply;
-      saveToHistory(text, reply);
-
-    } catch(err) {
-      loading.querySelector('.msg-text').innerHTML = `<span style="color:#ff6b6b;">❌ Błąd połączenia. Sprawdź czy klucz API jest poprawny w ustawieniach.</span>`;
+    
+    :root {
+      --bg-main: #343541;
+      --bg-sidebar: #202123;
+      --bg-input: #40414f;
+      --bg-msg-ai: #444654;
+      --text: #ececf1;
+      --text-dim: #8e8ea0;
+      --accent: #19c37d;
+      --accent-image: #a855f7;
+      --accent-voice: #ef4444;
+      --border: rgba(255,255,255,0.1);
+      --sidebar-width: 260px;
+      --sidebar-collapsed: 60px;
     }
-  } else {
-    // Tryb obrazu (Pollinations)
-    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(text)}?width=1024&height=1024&nologo=true`;
-    loading.querySelector('.msg-text').innerHTML = `<img src="${imgUrl}" class="generated-image" onload="this.style.opacity=1">`;
-  }
-}
-
-function addMsg(role, text) {
-  const chat = document.getElementById('chat');
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  div.innerHTML = `<div class="msg-inner"><div class="avatar ${role}">${role==='user'?'U':'🐟'}</div><div class="msg-text">${text}</div></div>`;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-  return div;
-}
-
-function saveToHistory(q, a) {
-  let chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
-  chats.unshift({title: q.substring(0,20), q, a});
-  localStorage.setItem('dorsz_chats', JSON.stringify(chats.slice(0,10)));
-}
-
-function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
-function saveSettings() {
-  const newKey = document.getElementById('apiKeyInput').value.trim();
-  localStorage.setItem('dorsz_api_key', newKey);
-  location.reload();
-}
-function newChat() { location.reload(); }
-
-init();
-</script>
-</body>
-</html>
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-main);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+    }
+    
+    #sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s ease;
+      overflow: hidden;
+    }
+    
+    #sidebar.collapsed { width: var(--sidebar-collapsed); }
+    #sidebar.collapsed .txt { display: none; }
+    #sidebar.collapsed .mode-tab span { display: none; }
+    #sidebar.collapsed .history-item span { display: none; }
+    #sidebar.collapsed .sidebar-btn span { display: none; }
+    #sidebar.collapsed .collapse-btn i { transform: rotate(180deg); }
+    
+    .collapse-btn {
+      width: 100%;
+      padding: 10px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+    
+    .collapse-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .collapse-btn i { transition: transform 0.3s; }
+    
+    .new-chat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    
+    .new-chat:hover { background: rgba(255,255,255,0.1); }
+    
+    .mode-tabs {
+      display: flex;
+      gap: 4px;
+      margin-top: 16px;
+      padding: 4px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+    
+    .mode-tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .mode-tab:hover { color: var(--text); }
+    .mode-tab.active { background: var(--bg-input); color: var(--text); }
+    .mode-tab.active.chat-mode { color: var(--accent); }
+    .mode-tab.active.image-mode { color: var(--accent-image); }
+    
+    #history { flex: 1; overflow-y: auto; margin-top: 16px; }
+    
+    .history-item {
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .history-item:hover { background: rgba(255,255,255,0.1); }
+    .history-item.active { background: rgba(255,255,255,0.15); }
+    .history-item i { opacity: 0.5; }
+    
+    .sidebar-bottom { border-top: 1px solid var(--border); padding-top: 8px; }
+    
+    .sidebar-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    
+    .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
+    
+    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    
+    #topbar {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    #topbar button {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    
+    #topbar button:hover { background: rgba(255,255,255,0.1); }
+    
+    #modeIndicator { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    #modeIndicator.image-mode { color: var(--accent-image); }
+    
+    #welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    
+    #welcome.hidden { display: none; }
+    
+    .logo { font-size: 64px; margin-bottom: 16px; }
+    #welcome h1 { font-size: 28px; margin-bottom: 8px; }
+    #welcome > p { color: var(--text-dim); margin-bottom: 24px; }
+    
+    .prompts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 600px; }
+    
+    .prompt {
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+    }
+    
+    .prompt:hover { background: rgba(255,255,255,0.1); }
+    .prompt i { color: var(--accent); margin-right: 8px; }
+    .prompt.image-prompt i { color: var(--accent-image); }
+    
+    #chat { flex: 1; overflow-y: auto; display: none; }
+    #chat.active { display: block; }
+    
+    .msg { padding: 24px; }
+    .msg.user { background: var(--bg-main); }
+    .msg.assistant { background: var(--bg-msg-ai); }
+    
+    .msg-inner { max-width: 768px; margin: 0 auto; display: flex; gap: 16px; }
+    
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    
+    .avatar.user { background: #5436DA; }
+    .avatar.assistant { background: var(--accent); }
+    .avatar.assistant.image-mode { background: var(--accent-image); }
+    
+    .msg-text { flex: 1; line-height: 1.7; overflow-wrap: break-word; }
+    .msg-text p { margin-bottom: 12px; }
+    .msg-text p:last-child { margin-bottom: 0; }
+    
+    .msg-text pre {
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 12px 0;
+      position: relative;
+    }
+    
+    .msg-text code { font-family: 'Consolas', monospace; font-size: 14px; }
+    .msg-text :not(pre) > code { background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; }
+    .msg-text ul, .msg-text ol { margin: 12px 0; padding-left: 24px; }
+    .msg-text li { margin-bottom: 6px; }
+    .msg-text strong { font-weight: 600; }
+    
+    .generated-image { max-width: 100%; border-radius: 12px; margin: 12px 0; cursor: pointer; transition: transform 0.2s; }
+    .generated-image:hover { transform: scale(1.02); }
+    
+    .image-actions { display: flex; gap: 8px; margin-top: 12px; }
+    
+    .image-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    
+    .image-btn:hover { background: rgba(255,255,255,0.2); }
+    
+    .image-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+    }
+    
+    .image-loading .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent-image);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 4px;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .copy-btn:hover { background: rgba(255,255,255,0.2); color: var(--text); }
+    
+    .typing { display: inline-flex; gap: 4px; }
+    
+    .typing span {
+      width: 8px;
+      height: 8px;
+      background: var(--text);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+    
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+    
+    #input-area { padding: 16px 24px 24px; }
+    .input-wrapper { max-width: 768px; margin: 0 auto; }
+    
+    .input-box {
+      display: flex;
+      align-items: flex-end;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+    }
+    
+    .input-box:focus-within { border-color: rgba(255,255,255,0.3); }
+    .input-box.image-mode:focus-within { border-color: var(--accent-image); }
+    
+    #attachBtn, #voiceBtn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    
+    #attachBtn:hover, #voiceBtn:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+    #voiceBtn.recording { color: var(--accent-voice); animation: pulse 1s infinite; }
+    
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    
+    #fileInput { display: none; }
+    
+    #input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      resize: none;
+      max-height: 200px;
+      line-height: 1.5;
+      padding: 4px 8px;
+    }
+    
+    #input::placeholder { color: var(--text-dim); }
+    
+    #send {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    
+    #send:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+    #send.active { color: var(--accent); }
+    #send.active.image-mode { color: var(--accent-image); }
+    #send:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .input-info { text-align: center; font-size: 12px; color: 
