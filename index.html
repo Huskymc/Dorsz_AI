@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 3.0</title>
+<title>Dorsz 3.0 – poprawione</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -45,13 +45,12 @@ body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;display:flex;hei
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 let memory = [];
+let isThinking = false; // blokada spamu
 
-// ENTER
 input.addEventListener("keydown", e => {
     if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}
 });
 
-// UI wiadomości
 function addMessage(role,text){
     const div=document.createElement("div");
     div.className="msg "+role;
@@ -64,51 +63,53 @@ function addMessage(role,text){
 function analyze(text){
     const t=text.toLowerCase();
 
-    // Powitania
     if(/hej|siemka|siema|elo|cześć|witaj/.test(t))
         return "Hej! 👋 W czym mogę pomóc?";
 
-    // Pomoc / problemy
     if(/pomoc|nie wiem|nie wiem jak/.test(t))
         return "Spokojnie 🙂. Opisz dokładnie, co chcesz zrobić, a pomogę krok po kroku.";
 
-    // Komendy techniczne
     if(t.includes("skrypt")) return "Jaki skrypt chcesz zrobić? Java, JS, HTML, Minecraft, plugin?";
     if(t.includes("plugin")) return "Na jaką wersję? Paper, Spigot, Velocity?";
-    if(t.includes("błąd") || t.includes("error")) return "Wklej kod lub logi – przeanalizuję.";
+    if(t.includes("błąd") || t.includes("error")) return "Wklej kod albo logi – przeanalizuję.";
     if(t.includes("html")) return "Chcesz cały plik HTML czy tylko fragment?";
     if(t.includes("java")) return "Jaka wersja Javy i co dokładnie nie działa?";
 
-    // Specjalne słowa
     if(t==="test") return "To jest wiadomość testowa ✅";
-
-    // Krótkie wiadomości
     if(t.length<3) return "Napisz trochę więcej 🙂";
 
-    // Neutralna odpowiedź
     return "Hmm… powiedz coś więcej, abym mógł pomóc.";
 }
 
 // Wyślij wiadomość
 function sendMessage(){
+    if(isThinking) return; // blokada spamu
     const text=input.value.trim();
     if(!text) return;
+
     addMessage("user",text);
     memory.push({role:"user",text});
     input.value="";
 
-    const aiIndex=memory.push({role:"assistant",text:"Analizuję problem…"})-1;
-    addMessage("assistant","Analizuję problem…");
+    isThinking = true;
+    const div = document.createElement("div");
+    div.className = "msg assistant";
+    div.textContent = "Analizuję problem…";
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
 
     setTimeout(()=>{
-        const reply=analyze(text);
+        const reply = analyze(text);
         let idx=0;
-        const interval=setInterval(()=>{
-            memory[aiIndex].text=reply.slice(0,idx+1);
-            chat.lastChild.textContent=memory[aiIndex].text;
-            chat.scrollTop=chat.scrollHeight;
+        const interval = setInterval(()=>{
+            div.textContent = reply.slice(0,idx+1);
+            chat.scrollTop = chat.scrollHeight;
             idx++;
-            if(idx>=reply.length) clearInterval(interval);
+            if(idx>=reply.length){
+                clearInterval(interval);
+                memory.push({role:"assistant",text:reply});
+                isThinking = false; // odblokuj wysyłanie
+            }
         },30);
     },200);
 }
