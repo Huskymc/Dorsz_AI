@@ -261,18 +261,41 @@
     
     #input-area { padding: 16px 24px 24px; }
     
-    .input-box {
+    .input-wrapper {
       max-width: 768px;
       margin: 0 auto;
+    }
+    
+    .input-box {
       display: flex;
       align-items: flex-end;
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 8px 12px;
     }
     
     .input-box:focus-within { border-color: rgba(255,255,255,0.3); }
+    
+    #attachBtn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    
+    #attachBtn:hover { 
+      color: var(--text); 
+      background: rgba(255,255,255,0.1); 
+    }
+    
+    #fileInput {
+      display: none;
+    }
     
     #input {
       flex: 1;
@@ -285,6 +308,7 @@
       resize: none;
       max-height: 200px;
       line-height: 1.5;
+      padding: 4px 8px;
     }
     
     #input::placeholder { color: var(--text-dim); }
@@ -307,6 +331,86 @@
       font-size: 12px;
       color: var(--text-dim);
       margin-top: 12px;
+    }
+    
+    /* ATTACHMENT PREVIEW */
+    #attachments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    #attachments:empty {
+      display: none;
+    }
+    
+    .attachment {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    
+    .attachment i {
+      color: var(--accent);
+    }
+    
+    .attachment .remove {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 2px;
+      font-size: 12px;
+    }
+    
+    .attachment .remove:hover {
+      color: #ff6b6b;
+    }
+    
+    /* FILE IN MESSAGE */
+    .file-preview {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .file-preview i {
+      font-size: 24px;
+      color: var(--accent);
+    }
+    
+    .file-preview .file-info {
+      flex: 1;
+    }
+    
+    .file-preview .file-name {
+      font-weight: 500;
+    }
+    
+    .file-preview .file-size {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .file-content {
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
     }
     
     .modal {
@@ -477,18 +581,25 @@
   <div id="chat"></div>
 
   <div id="input-area">
-    <div class="input-box">
-      <textarea id="input" rows="1" placeholder="Napisz wiadomość..."></textarea>
-      <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+    <div class="input-wrapper">
+      <div id="attachments"></div>
+      <div class="input-box">
+        <button id="attachBtn" onclick="document.getElementById('fileInput').click()" title="Dodaj plik">
+          <i class="fas fa-plus"></i>
+        </button>
+        <input type="file" id="fileInput" multiple accept=".txt,.js,.html,.css,.json,.py,.java,.c,.cpp,.md,.xml,.sql,.sh,.bat,.yml,.yaml,.ts,.tsx,.jsx,.vue,.php,.rb,.go,.rs,.swift,.kt" onchange="handleFiles(this.files)">
+        <textarea id="input" rows="1" placeholder="Napisz wiadomość..."></textarea>
+        <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+      <div class="input-info">Dorsz AI • Llama 3.3 przez Groq • Enter = wyślij</div>
     </div>
-    <div class="input-info">Dorsz AI • Llama 3.3 przez Groq • Enter = wyślij</div>
   </div>
 </div>
 
 <script>
 var API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-var SYSTEM = 'Jesteś Dorsz AI - inteligentny asystent programisty. Odpowiadaj po polsku. Formatuj kod w blokach ```język. Bądź konkretny i pomocny.';
+var SYSTEM = 'Jesteś Dorsz AI - inteligentny asystent programisty. Odpowiadaj po polsku. Formatuj kod w blokach ```język. Bądź konkretny i pomocny. Jeśli użytkownik załącza plik, przeanalizuj jego zawartość.';
 
 var apiKey = localStorage.getItem('dorsz_key') || '';
 var model = localStorage.getItem('dorsz_model') || 'llama-3.3-70b-versatile';
@@ -496,6 +607,7 @@ var chats = [];
 var currentChat = null;
 var messages = [];
 var generating = false;
+var attachedFiles = [];
 
 try {
   chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
@@ -512,6 +624,7 @@ var keyModal = document.getElementById('keyModal');
 var settingsModal = document.getElementById('settingsModal');
 var sidebar = document.getElementById('sidebar');
 var overlay = document.getElementById('overlay');
+var attachmentsEl = document.getElementById('attachments');
 
 function init() {
   if (!apiKey) {
@@ -542,17 +655,103 @@ function saveKey() {
   keyModal.classList.add('hidden');
 }
 
+// ========== OBSŁUGA PLIKÓW ==========
+function handleFiles(files) {
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    
+    // Sprawdź rozmiar (max 100KB)
+    if (file.size > 100000) {
+      alert('Plik "' + file.name + '" jest za duży (max 100KB)');
+      continue;
+    }
+    
+    // Czytaj zawartość pliku
+    (function(f) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        attachedFiles.push({
+          name: f.name,
+          size: f.size,
+          content: e.target.result
+        });
+        renderAttachments();
+      };
+      reader.readAsText(f);
+    })(file);
+  }
+  
+  // Reset input
+  document.getElementById('fileInput').value = '';
+}
+
+function renderAttachments() {
+  attachmentsEl.innerHTML = '';
+  
+  for (var i = 0; i < attachedFiles.length; i++) {
+    (function(index) {
+      var file = attachedFiles[index];
+      var div = document.createElement('div');
+      div.className = 'attachment';
+      div.innerHTML = '<i class="fas fa-file-code"></i>' +
+        '<span>' + file.name + '</span>' +
+        '<button class="remove" onclick="removeFile(' + index + ')" title="Usuń"><i class="fas fa-times"></i></button>';
+      attachmentsEl.appendChild(div);
+    })(i);
+  }
+}
+
+function removeFile(index) {
+  attachedFiles.splice(index, 1);
+  renderAttachments();
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  return (bytes / 1024).toFixed(1) + ' KB';
+}
+
+// ========== WYSYŁANIE ==========
 function send() {
   var text = input.value.trim();
-  if (!text || generating) return;
+  if ((!text && attachedFiles.length === 0) || generating) return;
   
   welcome.classList.add('hidden');
   chat.classList.add('active');
   
-  messages.push({ role: 'user', content: text });
-  addMsg('user', text);
+  // Przygotuj wiadomość z plikami
+  var fullMessage = text;
+  var fileInfoHtml = '';
   
+  if (attachedFiles.length > 0) {
+    fullMessage += '\n\n';
+    for (var i = 0; i < attachedFiles.length; i++) {
+      var file = attachedFiles[i];
+      fullMessage += '📎 Plik: ' + file.name + '\n```\n' + file.content + '\n```\n\n';
+      fileInfoHtml += '<div class="file-preview">' +
+        '<i class="fas fa-file-code"></i>' +
+        '<div class="file-info">' +
+        '<div class="file-name">' + file.name + '</div>' +
+        '<div class="file-size">' + formatFileSize(file.size) + '</div>' +
+        '</div></div>' +
+        '<div class="file-content">' + escapeHtml(file.content.substring(0, 500)) + 
+        (file.content.length > 500 ? '\n...(skrócono)' : '') + '</div>';
+    }
+  }
+  
+  messages.push({ role: 'user', content: fullMessage });
+  
+  // Wyświetl wiadomość użytkownika
+  var displayText = text;
+  if (fileInfoHtml) {
+    displayText = text + fileInfoHtml;
+  }
+  addMsg('user', displayText, true);
+  
+  // Wyczyść
   input.value = '';
+  attachedFiles = [];
+  renderAttachments();
   resize();
   
   generating = true;
@@ -597,13 +796,21 @@ function send() {
   });
 }
 
-function addMsg(role, content) {
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function addMsg(role, content, isRaw) {
   var div = document.createElement('div');
   div.className = 'msg ' + role;
   
   var avatar = role === 'user' ? '<i class="fas fa-user"></i>' : '🐟';
+  var formattedContent = isRaw ? content : format(content);
   
-  div.innerHTML = '<div class="msg-inner"><div class="avatar ' + role + '">' + avatar + '</div><div class="msg-text">' + format(content) + '</div></div>';
+  div.innerHTML = '<div class="msg-inner"><div class="avatar ' + role + '">' + avatar + '</div><div class="msg-text">' + formattedContent + '</div></div>';
   
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
@@ -666,7 +873,7 @@ function format(text) {
 function saveChat() {
   if (!messages.length) return;
   
-  var title = messages[0].content.substring(0, 35);
+  var title = messages[0].content.substring(0, 35).replace(/\n/g, ' ');
   var data = { title: title, messages: messages.slice(), date: Date.now() };
   
   if (currentChat !== null) {
@@ -707,7 +914,7 @@ function renderHistory() {
       var c = chats[index];
       var div = document.createElement('div');
       div.className = 'history-item' + (index === currentChat ? ' active' : '');
-      div.innerHTML = '<i class="fas fa-comment" style="margin-right:8px;opacity:0.5"></i>' + c.title;
+      div.innerHTML = '<i class="fas fa-comment" style="margin-right:8px;opacity:0.5"></i>' + escapeHtml(c.title);
       div.onclick = function() { loadChat(index); };
       historyEl.appendChild(div);
     })(i);
@@ -717,6 +924,8 @@ function renderHistory() {
 function newChat() {
   currentChat = null;
   messages = [];
+  attachedFiles = [];
+  renderAttachments();
   chat.innerHTML = '';
   chat.classList.remove('active');
   welcome.classList.remove('hidden');
@@ -755,7 +964,7 @@ function saveSettings() {
 function resize() {
   input.style.height = 'auto';
   input.style.height = Math.min(input.scrollHeight, 200) + 'px';
-  if (input.value.trim()) {
+  if (input.value.trim() || attachedFiles.length > 0) {
     sendBtn.classList.add('active');
   } else {
     sendBtn.classList.remove('active');
