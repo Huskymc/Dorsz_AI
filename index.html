@@ -19,6 +19,8 @@
       --accent-image: #a855f7;
       --accent-voice: #ef4444;
       --border: rgba(255,255,255,0.1);
+      --sidebar-width: 260px;
+      --sidebar-collapsed: 60px;
     }
     
     body {
@@ -30,11 +32,56 @@
     }
     
     #sidebar {
-      width: 260px;
+      width: var(--sidebar-width);
       background: var(--bg-sidebar);
       padding: 8px;
       display: flex;
       flex-direction: column;
+      transition: width 0.3s ease;
+      overflow: hidden;
+    }
+    
+    #sidebar.collapsed {
+      width: var(--sidebar-collapsed);
+    }
+    
+    #sidebar.collapsed .sidebar-text {
+      display: none;
+    }
+    
+    #sidebar.collapsed .new-chat {
+      justify-content: center;
+      padding: 12px 8px;
+    }
+    
+    #sidebar.collapsed .mode-tabs {
+      flex-direction: column;
+    }
+    
+    #sidebar.collapsed .mode-tab {
+      padding: 10px 8px;
+    }
+    
+    #sidebar.collapsed .mode-tab span {
+      display: none;
+    }
+    
+    #sidebar.collapsed .history-item {
+      text-align: center;
+      padding: 12px 8px;
+    }
+    
+    #sidebar.collapsed .history-item span {
+      display: none;
+    }
+    
+    #sidebar.collapsed .sidebar-btn {
+      justify-content: center;
+      padding: 12px 8px;
+    }
+    
+    #sidebar.collapsed .sidebar-btn span {
+      display: none;
     }
     
     .new-chat {
@@ -48,6 +95,7 @@
       color: var(--text);
       cursor: pointer;
       font-size: 14px;
+      white-space: nowrap;
     }
     
     .new-chat:hover { background: rgba(255,255,255,0.1); }
@@ -75,6 +123,7 @@
       justify-content: center;
       gap: 6px;
       transition: all 0.2s;
+      white-space: nowrap;
     }
     
     .mode-tab:hover { color: var(--text); }
@@ -96,6 +145,9 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     
     .history-item:hover { background: rgba(255,255,255,0.1); }
@@ -119,9 +171,39 @@
       cursor: pointer;
       font-size: 14px;
       text-align: left;
+      white-space: nowrap;
     }
     
     .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
+    
+    .collapse-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+    
+    .collapse-btn:hover { 
+      background: rgba(255,255,255,0.1); 
+      color: var(--text);
+    }
+    
+    .collapse-btn i {
+      transition: transform 0.3s;
+    }
+    
+    #sidebar.collapsed .collapse-btn i {
+      transform: rotate(180deg);
+    }
     
     #main {
       flex: 1;
@@ -600,10 +682,12 @@
         top: 0;
         height: 100%;
         transform: translateX(-100%);
-        transition: transform 0.3s;
+        transition: transform 0.3s, width 0.3s;
         z-index: 100;
+        width: var(--sidebar-width) !important;
       }
       #sidebar.open { transform: translateX(0); }
+      #sidebar.collapsed { width: var(--sidebar-width) !important; }
       .prompts { grid-template-columns: 1fr; }
       .overlay {
         position: fixed;
@@ -613,6 +697,7 @@
         display: none;
       }
       .overlay.show { display: block; }
+      .collapse-btn { display: none; }
     }
   </style>
 </head>
@@ -650,26 +735,30 @@
 </div>
 
 <div id="sidebar">
+  <button class="collapse-btn" onclick="toggleCollapse()" title="Zwiń/rozwiń panel">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  
   <button class="new-chat" onclick="newChat()">
-    <i class="fas fa-plus"></i> Nowy czat
+    <i class="fas fa-plus"></i> <span class="sidebar-text">Nowy czat</span>
   </button>
   
   <div class="mode-tabs">
     <button class="mode-tab active chat-mode" id="chatTab" onclick="setMode('chat')">
-      <i class="fas fa-comment"></i> Czat
+      <i class="fas fa-comment"></i> <span>Czat</span>
     </button>
     <button class="mode-tab image-mode" id="imageTab" onclick="setMode('image')">
-      <i class="fas fa-image"></i> Obrazy
+      <i class="fas fa-image"></i> <span>Obrazy</span>
     </button>
   </div>
   
   <div id="history"></div>
   <div class="sidebar-bottom">
     <button class="sidebar-btn" onclick="clearAll()">
-      <i class="fas fa-trash"></i> Wyczyść wszystko
+      <i class="fas fa-trash"></i> <span class="sidebar-text">Wyczyść wszystko</span>
     </button>
     <button class="sidebar-btn" onclick="openSettings()">
-      <i class="fas fa-cog"></i> Ustawienia
+      <i class="fas fa-cog"></i> <span class="sidebar-text">Ustawienia</span>
     </button>
   </div>
 </div>
@@ -678,7 +767,7 @@
   <div id="topbar">
     <button onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
     <span id="modeIndicator">🐟 Dorsz AI</span>
-    <button onclick="openSettings()"><i class="fas fa-cog"></i></button>
+    <div style="width: 40px;"></div>
   </div>
 
   <div id="welcome">
@@ -715,10 +804,9 @@ var API_KEY = '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';
 var API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 var IMAGE_API_URL = 'https://image.pollinations.ai/prompt/';
 
-// Imię użytkownika
 var userName = localStorage.getItem('dorsz_username') || '';
+var sidebarCollapsed = localStorage.getItem('dorsz_sidebar_collapsed') === 'true';
 
-// System prompt z imieniem
 function getSystemPrompt() {
   var greeting = userName ? 'Zwracaj się do użytkownika po imieniu: ' + userName + '. ' : '';
   return 'Jesteś Dorsz AI - inteligentny asystent programisty. ' + greeting + 'Odpowiadaj po polsku. Formatuj kod w blokach ```język. Bądź konkretny i pomocny. Jeśli użytkownik załącza plik, przeanalizuj jego zawartość.';
@@ -746,9 +834,10 @@ var messages = [];
 var generating = false;
 var attachedFiles = [];
 
-// Speech Recognition
 var recognition = null;
 var isRecording = false;
+var textBeforeVoice = '';
+var allTranscripts = [];
 
 try {
   chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
@@ -779,9 +868,12 @@ function init() {
   document.getElementById('modelSelect').value = model;
   document.getElementById('userNameInput').value = userName;
   
-  // Inicjalizacja rozpoznawania głosu
-  initSpeechRecognition();
+  // Przywróć stan sidebara
+  if (sidebarCollapsed) {
+    sidebar.classList.add('collapsed');
+  }
   
+  initSpeechRecognition();
   renderHistory();
   updateModeUI();
   updateWelcomeMessage();
@@ -803,6 +895,13 @@ function updateWelcomeMessage() {
   }
 }
 
+// ========== SIDEBAR COLLAPSE ==========
+function toggleCollapse() {
+  sidebar.classList.toggle('collapsed');
+  sidebarCollapsed = sidebar.classList.contains('collapsed');
+  localStorage.setItem('dorsz_sidebar_collapsed', sidebarCollapsed);
+}
+
 // ========== ROZPOZNAWANIE GŁOSU (Speech-to-Text) ==========
 function initSpeechRecognition() {
   if ('webkitSpeechRecognition' in window) {
@@ -820,25 +919,42 @@ function initSpeechRecognition() {
   recognition.interimResults = true;
   
   recognition.onresult = function(event) {
-    var transcript = '';
+    var currentInterim = '';
+    
     for (var i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
+      var transcript = event.results[i][0].transcript;
+      
+      if (event.results[i].isFinal) {
+        // Dodaj do tablicy końcowych transkrypcji
+        allTranscripts.push(transcript.trim());
+      } else {
+        currentInterim = transcript;
+      }
     }
-    input.value = transcript;
+    
+    // Połącz wszystkie końcowe + aktualny interim
+    var fullText = textBeforeVoice;
+    if (allTranscripts.length > 0) {
+      fullText += allTranscripts.join(' ') + ' ';
+    }
+    fullText += currentInterim;
+    
+    input.value = fullText;
     resize();
   };
   
   recognition.onerror = function(event) {
     console.log('Błąd rozpoznawania:', event.error);
-    stopRecording();
     if (event.error === 'not-allowed') {
+      stopRecording();
       alert('Musisz zezwolić na dostęp do mikrofonu!');
     }
+    // Nie zatrzymuj przy innych błędach - kontynuuj nagrywanie
   };
   
   recognition.onend = function() {
     if (isRecording) {
-      // Jeśli nagrywanie jest aktywne, kontynuuj
+      // Automatycznie restartuj - użytkownik nadal nagrywa
       try {
         recognition.start();
       } catch(e) {}
@@ -861,6 +977,8 @@ function toggleVoice() {
 
 function startRecording() {
   isRecording = true;
+  textBeforeVoice = input.value;
+  allTranscripts = []; // Resetuj transkrypcje
   voiceBtn.classList.add('recording');
   voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
   voiceBtn.title = 'Zatrzymaj nagrywanie';
@@ -996,7 +1114,6 @@ function send() {
   var text = input.value.trim();
   if ((!text && attachedFiles.length === 0) || generating) return;
   
-  // Zatrzymaj nagrywanie jeśli aktywne
   if (isRecording) {
     stopRecording();
   }
@@ -1275,7 +1392,7 @@ function renderHistory() {
       var div = document.createElement('div');
       div.className = 'history-item' + (index === currentChat ? ' active' : '');
       var icon = c.mode === 'image' ? 'fa-image' : 'fa-comment';
-      div.innerHTML = '<i class="fas ' + icon + '" style="margin-right:8px;opacity:0.5"></i>' + escapeHtml(c.title);
+      div.innerHTML = '<i class="fas ' + icon + '" style="opacity:0.5"></i><span>' + escapeHtml(c.title) + '</span>';
       div.onclick = function() { loadChat(index); };
       historyEl.appendChild(div);
     })(i);
@@ -1352,7 +1469,6 @@ function use(text) {
   input.focus();
 }
 
-// Skróty klawiszowe
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeLightbox();
