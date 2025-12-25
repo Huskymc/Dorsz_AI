@@ -27,7 +27,6 @@
       display: flex;
     }
     
-    /* SIDEBAR */
     #sidebar {
       width: 260px;
       background: var(--bg-sidebar);
@@ -92,7 +91,6 @@
     
     .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
     
-    /* MAIN */
     #main {
       flex: 1;
       display: flex;
@@ -100,7 +98,6 @@
       min-width: 0;
     }
     
-    /* TOPBAR */
     #topbar {
       height: 48px;
       padding: 0 16px;
@@ -121,7 +118,6 @@
     
     #topbar button:hover { background: rgba(255,255,255,0.1); }
     
-    /* WELCOME */
     #welcome {
       flex: 1;
       display: flex;
@@ -157,7 +153,6 @@
     .prompt:hover { background: rgba(255,255,255,0.1); }
     .prompt i { color: var(--accent); margin-right: 8px; }
     
-    /* CHAT */
     #chat {
       flex: 1;
       overflow-y: auto;
@@ -166,10 +161,7 @@
     
     #chat.active { display: block; }
     
-    .msg {
-      padding: 24px;
-    }
-    
+    .msg { padding: 24px; }
     .msg.user { background: var(--bg-main); }
     .msg.assistant { background: var(--bg-msg-ai); }
     
@@ -246,7 +238,6 @@
     
     .copy-btn:hover { background: rgba(255,255,255,0.2); color: var(--text); }
     
-    /* TYPING */
     .typing {
       display: inline-flex;
       gap: 4px;
@@ -268,10 +259,7 @@
       30% { transform: translateY(-8px); opacity: 1; }
     }
     
-    /* INPUT */
-    #input-area {
-      padding: 16px 24px 24px;
-    }
+    #input-area { padding: 16px 24px 24px; }
     
     .input-box {
       max-width: 768px;
@@ -284,9 +272,7 @@
       padding: 12px 16px;
     }
     
-    .input-box:focus-within {
-      border-color: rgba(255,255,255,0.3);
-    }
+    .input-box:focus-within { border-color: rgba(255,255,255,0.3); }
     
     #input {
       flex: 1;
@@ -323,7 +309,6 @@
       margin-top: 12px;
     }
     
-    /* MODAL */
     .modal {
       position: fixed;
       inset: 0;
@@ -380,21 +365,13 @@
     }
     
     .modal-box a { color: var(--accent); }
-    
-    .modal-box label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-    
+    .modal-box label { display: block; margin-bottom: 6px; font-size: 14px; }
     .setting { margin-bottom: 16px; }
     
-    /* SCROLLBAR */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
     
-    /* MOBILE */
     @media (max-width: 768px) {
       #sidebar {
         position: fixed;
@@ -405,11 +382,8 @@
         transition: transform 0.3s;
         z-index: 100;
       }
-      
       #sidebar.open { transform: translateX(0); }
-      
       .prompts { grid-template-columns: 1fr; }
-      
       .overlay {
         position: fixed;
         inset: 0;
@@ -417,14 +391,12 @@
         z-index: 99;
         display: none;
       }
-      
       .overlay.show { display: block; }
     }
   </style>
 </head>
 <body>
 
-<!-- API KEY MODAL -->
 <div class="modal" id="keyModal">
   <div class="modal-box">
     <h2>🐟 Dorsz AI</h2>
@@ -432,50 +404,39 @@
     <input type="password" id="keyInput" placeholder="gsk_xxxxxxxxxxxxxx">
     <button onclick="saveKey()">Zapisz i rozpocznij</button>
     <p style="margin-top:16px;text-align:center">
-      <a href="https://console.groq.com/keys" target="_blank">
-        👉 Zdobądź darmowy klucz tutaj
-      </a>
+      <a href="https://console.groq.com/keys" target="_blank">👉 Zdobądź darmowy klucz tutaj</a>
     </p>
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
 <div class="modal hidden" id="settingsModal">
   <div class="modal-box">
     <h2><i class="fas fa-cog"></i> Ustawienia</h2>
-    
     <div class="setting">
       <label>Model AI:</label>
       <select id="modelSelect">
         <option value="llama-3.3-70b-versatile">Llama 3.3 70B (najlepszy)</option>
         <option value="llama-3.1-8b-instant">Llama 3.1 8B (szybszy)</option>
-        <option value="llama3-70b-8192">Llama 3 70B</option>
         <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
         <option value="gemma2-9b-it">Gemma 2 9B</option>
       </select>
     </div>
-    
     <div class="setting">
       <label>Klucz API:</label>
       <input type="password" id="keySettings" placeholder="gsk_xxx">
     </div>
-    
     <button onclick="saveSettings()">Zapisz</button>
     <button class="secondary" onclick="closeSettings()">Anuluj</button>
   </div>
 </div>
 
-<!-- OVERLAY MOBILE -->
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
   <button class="new-chat" onclick="newChat()">
     <i class="fas fa-plus"></i> Nowy czat
   </button>
-  
   <div id="history"></div>
-  
   <div class="sidebar-bottom">
     <button class="sidebar-btn" onclick="clearAll()">
       <i class="fas fa-trash"></i> Wyczyść wszystko
@@ -486,21 +447,17 @@
   </div>
 </div>
 
-<!-- MAIN -->
 <div id="main">
-  
   <div id="topbar">
     <button onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
     <span style="font-weight:600">🐟 Dorsz AI</span>
     <button onclick="openSettings()"><i class="fas fa-cog"></i></button>
   </div>
-  
-  <!-- WELCOME -->
+
   <div id="welcome">
     <div class="logo">🐟</div>
     <h1>Dorsz AI</h1>
     <p>Jak mogę Ci dzisiaj pomóc?</p>
-    
     <div class="prompts">
       <div class="prompt" onclick="use('Napisz plugin Minecraft który teleportuje gracza do spawnu')">
         <i class="fas fa-gamepad"></i> Plugin Minecraft
@@ -516,73 +473,57 @@
       </div>
     </div>
   </div>
-  
-  <!-- CHAT -->
+
   <div id="chat"></div>
-  
-  <!-- INPUT -->
+
   <div id="input-area">
     <div class="input-box">
       <textarea id="input" rows="1" placeholder="Napisz wiadomość..."></textarea>
       <button id="send" onclick="send()"><i class="fas fa-paper-plane"></i></button>
     </div>
-    <div class="input-info">Dorsz AI • Llama 3.3 przez Groq</div>
+    <div class="input-info">Dorsz AI • Llama 3.3 przez Groq • Enter = wyślij</div>
   </div>
 </div>
 
 <script>
-// ============ KONFIGURACJA ============
-const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+var API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const SYSTEM = `Jesteś Dorsz AI - inteligentny asystent programisty.
+var SYSTEM = 'Jesteś Dorsz AI - inteligentny asystent programisty. Odpowiadaj po polsku. Formatuj kod w blokach ```język. Bądź konkretny i pomocny.';
 
-ZASADY:
-- Odpowiadaj po polsku (chyba że user pisze inaczej)
-- Formatuj kod w blokach \`\`\`język
-- Bądź konkretny i pomocny
-- Używaj emoji gdy pasuje
+var apiKey = localStorage.getItem('dorsz_key') || '';
+var model = localStorage.getItem('dorsz_model') || 'llama-3.3-70b-versatile';
+var chats = [];
+var currentChat = null;
+var messages = [];
+var generating = false;
 
-SPECJALIZACJE:
-- JavaScript, TypeScript, Node.js
-- Java (w tym pluginy Minecraft - Spigot/Paper)
-- Python
-- HTML, CSS
-- Bazy danych
-- Git i GitHub`;
+try {
+  chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
+} catch(e) {
+  chats = [];
+}
 
-// ============ STAN ============
-let apiKey = localStorage.getItem('dorsz_key') || '';
-let model = localStorage.getItem('dorsz_model') || 'llama-3.3-70b-versatile';
-let chats = JSON.parse(localStorage.getItem('dorsz_chats') || '[]');
-let currentChat = null;
-let messages = [];
-let generating = false;
+var chat = document.getElementById('chat');
+var input = document.getElementById('input');
+var sendBtn = document.getElementById('send');
+var welcome = document.getElementById('welcome');
+var historyEl = document.getElementById('history');
+var keyModal = document.getElementById('keyModal');
+var settingsModal = document.getElementById('settingsModal');
+var sidebar = document.getElementById('sidebar');
+var overlay = document.getElementById('overlay');
 
-// ============ ELEMENTY ============
-const $ = id => document.getElementById(id);
-const chat = $('chat');
-const input = $('input');
-const sendBtn = $('send');
-const welcome = $('welcome');
-const history = $('history');
-const keyModal = $('keyModal');
-const settingsModal = $('settingsModal');
-const sidebar = $('sidebar');
-const overlay = $('overlay');
-
-// ============ INIT ============
 function init() {
   if (!apiKey) {
     keyModal.classList.remove('hidden');
   } else {
     keyModal.classList.add('hidden');
   }
-  
-  $('modelSelect').value = model;
+  document.getElementById('modelSelect').value = model;
   renderHistory();
   
   input.addEventListener('input', resize);
-  input.addEventListener('keydown', e => {
+  input.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
@@ -590,11 +531,10 @@ function init() {
   });
 }
 
-// ============ API KEY ============
 function saveKey() {
-  const key = $('keyInput').value.trim();
-  if (!key || !key.startsWith('gsk_')) {
-    alert('Podaj poprawny klucz API Groq (zaczyna się od gsk_)');
+  var key = document.getElementById('keyInput').value.trim();
+  if (!key) {
+    alert('Podaj klucz API Groq');
     return;
   }
   apiKey = key;
@@ -602,9 +542,8 @@ function saveKey() {
   keyModal.classList.add('hidden');
 }
 
-// ============ WYSYŁANIE ============
-async function send() {
-  const text = input.value.trim();
+function send() {
+  var text = input.value.trim();
   if (!text || generating) return;
   
   welcome.classList.add('hidden');
@@ -618,251 +557,59 @@ async function send() {
   
   generating = true;
   sendBtn.disabled = true;
-  const typing = addTyping();
+  var typing = addTyping();
   
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: 'system', content: SYSTEM },
-          ...messages
-        ],
-        temperature: 0.7,
-        max_tokens: 4096,
-        stream: false
-      })
-    });
-    
+  fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: 'system', content: SYSTEM }].concat(messages),
+      temperature: 0.7,
+      max_tokens: 4096
+    })
+  })
+  .then(function(res) {
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `Błąd ${res.status}`);
+      return res.json().then(function(err) {
+        throw new Error(err.error ? err.error.message : 'Błąd ' + res.status);
+      });
     }
-    
-    const data = await res.json();
-    const reply = data.choices[0].message.content;
-    
+    return res.json();
+  })
+  .then(function(data) {
+    var reply = data.choices[0].message.content;
     typing.remove();
     messages.push({ role: 'assistant', content: reply });
     addMsg('assistant', reply);
     saveChat();
-    
-  } catch (err) {
+  })
+  .catch(function(err) {
     typing.remove();
-    addMsg('assistant', `❌ **Błąd:** ${err.message}\n\nSprawdź czy klucz API jest poprawny.`);
-  } finally {
+    addMsg('assistant', '❌ Błąd: ' + err.message + '\n\nSprawdź czy klucz API jest poprawny.');
+  })
+  .finally(function() {
     generating = false;
     sendBtn.disabled = false;
-  }
+  });
 }
 
-// ============ WIADOMOŚCI ============
 function addMsg(role, content) {
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
   
-  div.innerHTML = `
-    <div class="msg-inner">
-      <div class="avatar ${role}">
-        ${role === 'user' ? '<i class="fas fa-user"></i>' : '🐟'}
-      </div>
-      <div class="msg-text">${format(content)}</div>
-    </div>
-  `;
+  var avatar = role === 'user' ? '<i class="fas fa-user"></i>' : '🐟';
+  
+  div.innerHTML = '<div class="msg-inner"><div class="avatar ' + role + '">' + avatar + '</div><div class="msg-text">' + format(content) + '</div></div>';
   
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
   
-  // Dodaj przyciski kopiowania do bloków kodu
-  div.querySelectorAll('pre').forEach(pre => {
-    const btn = document.createElement('button');
-    btn.className = 'copy-btn';
-    btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj';
-    btn.onclick = () => {
-      navigator.clipboard.writeText(pre.querySelector('code').textContent);
-      btn.innerHTML = '<i class="fas fa-check"></i> Skopiowano!';
-      setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj', 2000);
-    };
-    pre.appendChild(btn);
-  });
-  
-  return div;
-}
-
-function addTyping() {
-  const div = document.createElement('div');
-  div.className = 'msg assistant';
-  div.innerHTML = `
-    <div class="msg-inner">
-      <div class="avatar assistant">🐟</div>
-      <div class="msg-text">
-        <div class="typing"><span></span><span></span><span></span></div>
-      </div>
-    </div>
-  `;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-  return div;
-}
-
-// ============ FORMATOWANIE ============
-function format(text) {
-  // Bloki kodu
-  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    return `<pre><code class="language-${lang}">${esc(code.trim())}</code></pre>`;
-  });
-  
-  // Inline code
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // Bold
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  
-  // Italic
-  text = text.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
-  
-  // Listy
-  text = text.replace(/^\s*[-•]\s+(.+)$/gm, '<li>$1</li>');
-  text = text.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
-  text = text.replace(/<\/ul>\s*<ul>/g, '');
-  
-  // Paragrafy
-  const parts = text.split(/\n\n+/);
-  text = parts.map(p => {
-    p = p.trim();
-    if (!p) return '';
-    if (p.startsWith('<pre>') || p.startsWith('<ul>')) return p;
-    return `<p>${p.replace(/\n/g, '<br>')}</p>`;
-  }).join('');
-  
-  return text;
-}
-
-function esc(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-// ============ HISTORIA ============
-function saveChat() {
-  if (!messages.length) return;
-  
-  const title = messages[0].content.slice(0, 35);
-  const data = { title, messages: [...messages], date: Date.now() };
-  
-  if (currentChat !== null) {
-    chats[currentChat] = data;
-  } else {
-    currentChat = chats.length;
-    chats.push(data);
-  }
-  
-  // Max 30 czatów
-  if (chats.length > 30) chats = chats.slice(-30);
-  
-  localStorage.setItem('dorsz_chats', JSON.stringify(chats));
-  renderHistory();
-}
-
-function loadChat(i) {
-  currentChat = i;
-  messages = [...chats[i].messages];
-  
-  welcome.classList.add('hidden');
-  chat.classList.add('active');
-  chat.innerHTML = '';
-  
-  messages.forEach(m => addMsg(m.role, m.content));
-  renderHistory();
-  closeSidebar();
-}
-
-function renderHistory() {
-  history.innerHTML = '';
-  
-  chats.slice().reverse().forEach((c, i) => {
-    const realIndex = chats.length - 1 - i;
-    const div = document.createElement('div');
-    div.className = `history-item ${realIndex === currentChat ? 'active' : ''}`;
-    div.innerHTML = `<i class="fas fa-comment" style="margin-right:8px;opacity:0.5"></i>${esc(c.title)}`;
-    div.onclick = () => loadChat(realIndex);
-    history.appendChild(div);
-  });
-}
-
-function newChat() {
-  currentChat = null;
-  messages = [];
-  chat.innerHTML = '';
-  chat.classList.remove('active');
-  welcome.classList.remove('hidden');
-  renderHistory();
-  closeSidebar();
-}
-
-function clearAll() {
-  if (!confirm('Usunąć całą historię?')) return;
-  chats = [];
-  localStorage.removeItem('dorsz_chats');
-  newChat();
-}
-
-// ============ USTAWIENIA ============
-function openSettings() {
-  $('keySettings').value = apiKey;
-  $('modelSelect').value = model;
-  settingsModal.classList.remove('hidden');
-}
-
-function closeSettings() {
-  settingsModal.classList.add('hidden');
-}
-
-function saveSettings() {
-  const key = $('keySettings').value.trim();
-  if (key) {
-    apiKey = key;
-    localStorage.setItem('dorsz_key', key);
-  }
-  
-  model = $('modelSelect').value;
-  localStorage.setItem('dorsz_model', model);
-  
-  closeSettings();
-}
-
-// ============ UI ============
-function resize() {
-  input.style.height = 'auto';
-  input.style.height = Math.min(input.scrollHeight, 200) + 'px';
-  sendBtn.classList.toggle('active', input.value.trim().length > 0);
-}
-
-function toggleSidebar() {
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('show');
-}
-
-function closeSidebar() {
-  sidebar.classList.remove('open');
-  overlay.classList.remove('show');
-}
-
-function use(text) {
-  input.value = text;
-  resize();
-  input.focus();
-}
-
-// START
-init();
-</script>
-</body>
-</html>
+  var pres = div.querySelectorAll('pre');
+  for (var i = 0; i < pres.length; i++) {
+    (function(pre) {
+      var btn = document.createElement('button');
+      btn.className = 
