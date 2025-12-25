@@ -2,134 +2,332 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dorsz 1.2 – Reakcja na każdą wiadomość</title>
+<title>Dorsz AI 2.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;display:flex;height:100vh;}
-#sidebar{width:260px;background:#151515;padding:10px;display:flex;flex-direction:column;}
-#sidebar h2{margin-bottom:10px;}
-#sidebar button{margin-bottom:5px;padding:10px;background:#1f1f1f;color:#fff;border:none;cursor:pointer;}
-#sidebar button:hover{background:#2a2a2a;}
-#main{flex:1;display:flex;flex-direction:column;}
-#topbar{height:50px;background:#111;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid #222;}
-#chat{flex:1;padding:15px;overflow-y:auto;}
-.msg{margin-bottom:12px;padding:10px;border-radius:6px;max-width:80%;}
-.user{background:#1e3a5f;align-self:flex-end;}
-.assistant{background:#1f1f1f;align-self:flex-start;}
-#inputBar{display:flex;border-top:1px solid #222;}
-#input{flex:1;padding:12px;background:#111;color:#fff;border:none;outline:none;font-size:15px;}
-#sendBtn{padding:12px 20px;background:#2b2b2b;color:#fff;border:none;cursor:pointer;}
-#sendBtn:hover{background:#3a3a3a;}
-</style>
-</head>
-
-<body>
-
-<div id="sidebar">
-<h2>🐟 Dorsz</h2>
-<button onclick="newChat()">➕ Nowy czat</button>
-</div>
-
-<div id="main">
-<div id="topbar"><div>Dorsz 1.2</div><div></div></div>
-
-<div id="chat"></div>
-
-<div id="inputBar">
-<input id="input" placeholder="Napisz do Dorsza…" />
-<button id="sendBtn" onclick="sendMessage()">Wyślij</button>
-</div>
-</div>
-
-<script>
-const chat=document.getElementById("chat");
-const input=document.getElementById("input");
-let memory=[];
-let isThinking=false;
-
-// ENTER
-input.addEventListener("keydown", e=>{
-  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}
-});
-
-// dodaj wiadomość
-function addMessage(role,text){
-  const div=document.createElement("div");
-  div.className="msg "+role;
-  div.textContent=text;
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-// analiza każdej wiadomości
-function analyze(text){
-  const t=text.toLowerCase();
-
-  // powitania
-  if(/hej|siemka|siema|elo|cześć|witaj/.test(t)) return "Hej! 👋 W czym mogę pomóc?";
-  
-  // prośby o pomoc
-  if(/potrzebuję pomocy|nie wiem|nie wiem jak|nie umiem|helpp|pomocy|pls|szefie/.test(t))
-    return "Spokojnie 🙂. Opisz dokładnie, co potrzebujesz, a krok po kroku Ci pomogę.";
-
-  // techniczne komendy
-  if(t.includes("plugin")) return "Na jaką wersję? Paper, Spigot, Velocity?";
-  if(t.includes("skrypt")) return "Jaki skrypt chcesz zrobić? Java, JS, HTML, Minecraft, plugin?";
-  if(t.includes("błąd") || t.includes("error")) return "Wklej kod albo logi – przeanalizuję.";
-  if(t.includes("html")) return "Chcesz cały plik HTML czy tylko fragment?";
-  if(t.includes("java")) return "Jaka wersja Javy i co dokładnie nie działa?";
-  
-  // test
-  if(t==="test") return "To jest wiadomość testowa ✅";
-
-  // każda inna wiadomość
-  return "Rozumiem! Opisz dokładniej, co potrzebujesz, a krok po kroku Ci pomogę 🙂";
+body {
+  font-family: 'Söhne', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: #343541;
+  color: #ececf1;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
-// wyślij wiadomość
-function sendMessage(){
-  if(isThinking) return;
-  const text=input.value.trim();
-  if(!text) return;
-  addMessage("user",text);
-  memory.push({role:"user",text});
-  input.value="";
-
-  isThinking=true;
-  const div=document.createElement("div");
-  div.className="msg assistant";
-  div.textContent="Analizuję problem…";
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
-
-  setTimeout(()=>{
-    const reply=analyze(text);
-    let idx=0;
-    const interval=setInterval(()=>{
-      div.textContent=reply.slice(0, idx+1);
-      chat.scrollTop=chat.scrollHeight;
-      idx++;
-      if(idx>=reply.length){
-        clearInterval(interval);
-        memory.push({role:"assistant",text:reply});
-        isThinking=false;
-      }
-    },30);
-  },200);
+/* === SIDEBAR === */
+#sidebar {
+  width: 260px;
+  background: #202123;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s;
 }
 
-// nowy czat
-function newChat(){
-  chat.innerHTML="";
-  memory=[];
-  addMessage("assistant","Nowy czat. W czym mogę pomóc?");
+#sidebar.hidden {
+  transform: translateX(-100%);
+  position: absolute;
 }
 
-// start
-addMessage("assistant","Hej! Jestem Dorsz 🐟 Jak mogę pomóc?");
-</script>
+.new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
 
-</body>
-</html>
+.new-chat-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
+.chat-history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ececf1;
+  transition: background 0.2s;
+}
+
+.chat-history-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.chat-history-item.active {
+  background: rgba(255,255,255,0.15);
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  color: #ececf1;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  width: 100%;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.sidebar-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* === MAIN === */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* === TOPBAR === */
+#topbar {
+  height: 44px;
+  background: #343541;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+#topbar .title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#topbar button {
+  background: transparent;
+  border: none;
+  color: #ececf1;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+#topbar button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* === CHAT === */
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.message-row {
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.message-row.user {
+  background: #343541;
+}
+
+.message-row.assistant {
+  background: #444654;
+}
+
+.message-content {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 16px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.avatar.user-avatar {
+  background: #5436DA;
+}
+
+.avatar.assistant-avatar {
+  background: #19c37d;
+}
+
+.message-text {
+  flex: 1;
+  line-height: 1.6;
+  padding-top: 4px;
+  word-wrap: break-word;
+}
+
+.message-text code {
+  background: #1e1e1e;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+}
+
+.message-text pre {
+  background: #1e1e1e;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.message-text pre code {
+  background: none;
+  padding: 0;
+}
+
+.message-text strong {
+  font-weight: 600;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: #ececf1;
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* === INPUT === */
+#input-container {
+  padding: 16px 24px 24px;
+  background: #343541;
+}
+
+#input-wrapper {
+  max-width: 768px;
+  margin: 0 auto;
+  position: relative;
+}
+
+#input-box {
+  display: flex;
+  align-items: flex-end;
+  background: #40414f;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#input-box:focus-within {
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+#input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ececf1;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: none;
+  max-height: 200px;
+  font-family: inherit;
+}
+
+#input::placeholder {
+  color: #8e8ea0;
+}
+
+#send-btn {
+  background: transparent;
+  border: none;
+  color: #8e8ea0;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+#send-btn:hover:not(:disabled) {
+  color: #ececf1;
+  background: rgba(255,255,255,0.1);
+}
+
+#send-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+#send-btn.active {
+  color: #19c37d;
+}
+
+.input-info {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #8e8ea0;
+}
+
+/* === WELCOME SCREEN === */
+#welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
