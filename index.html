@@ -144,5 +144,137 @@ canvas{
 <div id="app">
 
 <div id="sidebar">
-  <button id="newCh
+  <button id="newChat">＋ New chat</button>
 
+  <div id="history"></div>
+
+  <div id="settings">
+    <label>Motyw</label>
+    <select id="theme">
+      <option value="dark">Ciemny</option>
+      <option value="light">Jasny</option>
+    </select>
+
+    <label>Styl odpowiedzi</label>
+    <select id="style">
+      <option value="neutral">Neutralny</option>
+      <option value="konkretny">Konkretny</option>
+      <option value="techniczny">Techniczny</option>
+    </select>
+  </div>
+</div>
+
+<div id="chat">
+  <div id="messages"></div>
+  <canvas id="canvas" width="512" height="512"></canvas>
+
+  <div id="inputArea">
+    <div id="inputWrap">
+      <input id="input" placeholder="Send a message…" autocomplete="off">
+      <button id="send">➤</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ===== STATE ===== */
+let chats = JSON.parse(localStorage.getItem("dorsz_chats")) || [[]];
+let current = chats.length-1;
+let settings = JSON.parse(localStorage.getItem("dorsz_settings")) || {
+  theme:"dark",
+  style:"neutral"
+};
+
+const body=document.body;
+const input=document.getElementById("input");
+const messages=document.getElementById("messages");
+const historyEl=document.getElementById("history");
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+/* INIT */
+applySettings();
+renderHistory();
+loadChat();
+
+input.onkeydown=e=>e.key==="Enter"&&send();
+send.onclick=send;
+newChat.onclick=()=>{chats.push([]);current=chats.length-1;save();renderHistory();loadChat();};
+
+theme.value=settings.theme;
+style.value=settings.style;
+
+theme.onchange=e=>{settings.theme=e.target.value;applySettings();saveSettings();};
+style.onchange=e=>{settings.style=e.target.value;saveSettings();};
+
+function applySettings(){
+  body.className=settings.theme==="light"?"light":"";
+}
+
+/* CHAT */
+function send(){
+  const t=input.value.trim();
+  if(!t) return;
+  input.value="";
+  chats[current].push({r:"user",t});
+  chats[current].push({r:"ai",t:brain(t)});
+  save();
+  loadChat();
+}
+function loadChat(){
+  messages.innerHTML="";
+  chats[current].forEach(m=>{
+    const d=document.createElement("div");
+    d.className="msg "+m.r;
+    d.textContent=m.t;
+    messages.appendChild(d);
+  });
+  messages.scrollTop=messages.scrollHeight;
+}
+function renderHistory(){
+  historyEl.innerHTML="";
+  chats.forEach((c,i)=>{
+    const h=document.createElement("div");
+    h.className="hist";
+    h.textContent=c[0]?c[0].t.slice(0,24):"New chat";
+    h.onclick=()=>{current=i;loadChat();};
+    historyEl.appendChild(h);
+  });
+}
+function save(){localStorage.setItem("dorsz_chats",JSON.stringify(chats));}
+function saveSettings(){localStorage.setItem("dorsz_settings",JSON.stringify(settings));}
+
+/* LOGIKA */
+function brain(text){
+  const t=text.toLowerCase();
+  if(t==="true") return "true";
+  if(/hej|siema|elo/.test(t)) return styleOut("Cześć. Słucham.");
+  if(/kim.*jeste/.test(t)) return styleOut("Jestem DorszAI. Frontendowa kopia interfejsu ChatGPT.");
+  if(/obraz|rysuj|generuj/.test(t)){ draw(); return styleOut("Obraz wygenerowany."); }
+  if(t.endsWith("?")) return styleOut("Dobre pytanie. Sprecyzuj, czego dokładnie oczekujesz.");
+  return styleOut("Zrozumiałem. Możemy to rozwinąć.");
+}
+function styleOut(t){
+  if(settings.style==="techniczny") return "[OK] "+t;
+  if(settings.style==="konkretny") return t.replace(/\.$/,".");
+  return t;
+}
+
+/* IMAGE */
+function draw(){
+  const g=ctx.createLinearGradient(0,0,512,512);
+  g.addColorStop(0,r()); g.addColorStop(1,r());
+  ctx.fillStyle=g; ctx.fillRect(0,0,512,512);
+  for(let i=0;i<25;i++){
+    ctx.fillStyle=r();
+    ctx.beginPath();
+    ctx.arc(Math.random()*512,Math.random()*512,Math.random()*35,0,6.28);
+    ctx.fill();
+  }
+}
+function r(){return `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`}
+</script>
+</body>
+</html>
