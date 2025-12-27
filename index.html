@@ -120,4 +120,84 @@ body {
 
 <div id="sidebar">
     <button id="newChat">+ Nowa rozmowa</button>
-    <div class="chatItem">
+    <div class="chatItem">Rozmowa 1</div>
+</div>
+
+<div id="main">
+    <div id="chat"></div>
+
+    <div id="inputBar">
+        <button id="plus">+</button>
+        <input id="input" placeholder="Napisz wiadomość...">
+        <button id="send">➤</button>
+    </div>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+/* NORMALIZACJA */
+function normalize(text) {
+    return text
+        .toLowerCase()
+        .replace(/[!?.,]/g, "")
+        .trim();
+}
+
+/* INTELIGENCJA (HEURYSTYKA) */
+function aiResponse(text) {
+    const t = normalize(text);
+
+    const greetings = ["elo","siema","hej","cześć","yo","witam"];
+    if (greetings.includes(t)) {
+        return "Siema 👋 Co chcesz dziś zrobić?";
+    }
+
+    if (t.includes("kim jesteś")) {
+        return "Jestem lokalnym AI zbudowanym w HTML i JavaScript. Symuluję ChatGPT bez serwera.";
+    }
+
+    if (t.includes("pomoc") || t.includes("help")) {
+        return "Mogę odpowiadać na pytania, symulować AI i działać offline. Pytaj konkretnie.";
+    }
+
+    if (t.includes("html")) {
+        return "HTML to tylko interfejs. Prawdziwa inteligencja jest symulowana w JS.";
+    }
+
+    if (t.length < 3) {
+        return "Napisz coś konkretniejszego.";
+    }
+
+    return "Rozumiem sens wypowiedzi, ale potrzebuję więcej kontekstu. Rozwiń myśl.";
+}
+
+/* UI */
+function addMessage(type, text) {
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function send() {
+    const text = input.value.trim();
+    if (!text) return;
+    addMessage("user", text);
+    input.value = "";
+
+    setTimeout(() => {
+        addMessage("ai", aiResponse(text));
+    }, 400);
+}
+
+document.getElementById("send").onclick = send;
+input.addEventListener("keydown", e => {
+    if (e.key === "Enter") send();
+});
+</script>
+
+</body>
+</html>
