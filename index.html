@@ -2,69 +2,172 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
+<title>DorszAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dorsz AI - JS Only</title>
+
 <style>
-body{margin:0;font-family:sans-serif;background:#f5f5f5;}
-#container{display:flex;height:100vh;}
-#sidebar{width:250px;background:#202123;color:#fff;padding:20px;display:flex;flex-direction:column;}
-#sidebar h2{margin-bottom:20px;}
-#sidebar button{margin-bottom:10px;padding:10px;border:none;border-radius:5px;background:#3e3f41;color:#fff;cursor:pointer;}
-#sidebar button:hover{background:#5a5b5d;}
-#chat{flex:1;display:flex;flex-direction:column;background:#f7f7f8;}
-#messages{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;}
-.message{max-width:70%;padding:10px 15px;margin-bottom:10px;border-radius:12px;word-wrap:break-word;line-height:1.4;}
-.user{align-self:flex-end;background:#4f9aff;color:#fff;border-bottom-right-radius:0;}
-.ai{align-self:flex-start;background:#e5e5ea;color:#000;border-bottom-left-radius:0;}
-#inputArea{display:flex;padding:15px;background:#fff;border-top:1px solid #ccc;}
-#inputArea input{flex:1;padding:12px;border-radius:20px;border:1px solid #ccc;outline:none;font-size:14px;}
-#inputArea button{margin-left:10px;padding:12px 18px;border:none;border-radius:50%;background:#4f9aff;color:#fff;cursor:pointer;font-size:20px;}
-#inputArea button:hover{background:#2979ff;}
-#imageContainer{padding:15px;background:#fff;border-top:1px solid #ccc;text-align:center;}
-#imageContainer canvas{max-width:100%;border-radius:10px;border:1px solid #ccc;}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f5f5;
+}
+#app{
+  display:flex;
+  height:100vh;
+}
+#sidebar{
+  width:260px;
+  background:#202123;
+  color:#fff;
+  padding:20px;
+}
+#sidebar h2{
+  margin-top:0;
+}
+#chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:#f7f7f8;
+}
+#messages{
+  flex:1;
+  padding:20px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+.msg{
+  max-width:70%;
+  padding:10px 14px;
+  margin-bottom:10px;
+  border-radius:12px;
+  line-height:1.4;
+  word-wrap:break-word;
+}
+.user{
+  align-self:flex-end;
+  background:#4f9aff;
+  color:#fff;
+  border-bottom-right-radius:0;
+}
+.ai{
+  align-self:flex-start;
+  background:#e5e5ea;
+  color:#000;
+  border-bottom-left-radius:0;
+}
+#inputBox{
+  display:flex;
+  padding:15px;
+  background:#fff;
+  border-top:1px solid #ccc;
+}
+#input{
+  flex:1;
+  padding:12px;
+  border-radius:20px;
+  border:1px solid #ccc;
+  font-size:14px;
+}
+#send{
+  margin-left:10px;
+  width:45px;
+  height:45px;
+  border:none;
+  border-radius:50%;
+  background:#4f9aff;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+#send:hover{
+  background:#2979ff;
+}
 </style>
 </head>
+
 <body>
-<div id="container">
-    <div id="sidebar">
-        <h2>Dorsz AI</h2>
-        <button onclick="newConversation()">+ Nowa rozmowa</button>
-        <button onclick="generateImage()">🖼️ Generuj obraz</button>
+
+<div id="app">
+  <div id="sidebar">
+    <h2>DorszAI</h2>
+    <p>Frontend AI (GitHub Pages)</p>
+  </div>
+
+  <div id="chat">
+    <div id="messages"></div>
+
+    <div id="inputBox">
+      <input id="input" placeholder="Napisz wiadomość..." autocomplete="off">
+      <button id="send">➤</button>
     </div>
-    <div id="chat">
-        <div id="messages"></div>
-        <div id="inputArea">
-            <input type="text" id="userInput" placeholder="Napisz wiadomość..." />
-            <button onclick="sendMessage()">➤</button>
-        </div>
-        <div id="imageContainer">
-            <canvas id="imageCanvas" width="512" height="512"></canvas>
-        </div>
-    </div>
+  </div>
 </div>
 
 <script>
-const messagesEl=document.getElementById('messages');
-const inputEl=document.getElementById('userInput');
-const canvas=document.getElementById('imageCanvas');
-const ctx=canvas.getContext('2d');
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const messages = document.getElementById("messages");
 
-let history=[];
+// ENTER
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
 
-function appendMessage(text,sender){
-    const div=document.createElement('div');
-    div.className='message '+sender;
-    div.textContent=text;
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop=messagesEl.scrollHeight;
-}
+// KLIK
+sendBtn.addEventListener("click", sendMessage);
 
 function sendMessage(){
-    const text=inputEl.value.trim();
-    if(!text) return;
-    appendMessage(text,'user');
-    inputEl.value='';
-    history.push({role:'user',text});
+  const text = input.value.trim();
+  if(!text) return;
+
+  addMessage(text, "user");
+  input.value = "";
+
+  setTimeout(() => {
+    const reply = dorszAI(text);
+    addMessage(reply, "ai");
+  }, 300);
+}
+
+function addMessage(text, type){
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.textContent = text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// ======= MÓZG DORSZ AI =======
+function dorszAI(text){
+  const t = text.toLowerCase();
+
+  if(t === "elo" || t === "siema" || t === "hej")
+    return "Siema 👋 Działam poprawnie.";
+
+  if(t.includes("kim jesteś"))
+    return "Jestem DorszAI — frontendowa wersja AI działająca na GitHub Pages.";
+
+  if(t.includes("github"))
+    return "Tak, działam bez serwera. HTML + CSS + JS.";
+
+  if(t.includes("co potrafisz"))
+    return "Rozmowa, logika, interakcja. Backend AI można dodać później.";
+
+  if(t === "true")
+    return "true"; // nie tłumaczy
+
+  return "Rozumiem wiadomość. Możesz pisać dalej.";
+}
+
+// Wiadomość startowa
+addMessage("Cześć! Jestem DorszAI. Napisz coś 🙂", "ai");
+</script>
+
+</body>
+</html>
 
     // Symulacja AI
     let reply = generateAIReply(text);
