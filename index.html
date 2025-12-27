@@ -2,133 +2,122 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
+<title>LocalGPT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dorsz AI</title>
+
 <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: #202124;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-    }
-    #chatContainer {
-        width: 90%;
-        max-width: 600px;
-        height: 80%;
-        display: flex;
-        flex-direction: column;
-        background: #2a2a2a;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-    #chat {
-        flex: 1;
-        padding: 15px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .message {
-        max-width: 75%;
-        padding: 10px 15px;
-        border-radius: 20px;
-        word-wrap: break-word;
-        line-height: 1.4;
-    }
-    .user {
-        background: #4caf50;
-        color: #fff;
-        align-self: flex-end;
-        border-bottom-right-radius: 0;
-    }
-    .ai {
-        background: #3c3c3c;
-        color: #fff;
-        align-self: flex-start;
-        border-bottom-left-radius: 0;
-    }
-    #inputContainer {
-        display: flex;
-        border-top: 1px solid #444;
-    }
-    #userInput {
-        flex: 1;
-        padding: 15px;
-        border: none;
-        border-radius: 0;
-        font-size: 16px;
-        background: #2a2a2a;
-        color: #fff;
-    }
-    #userInput:focus { outline: none; }
-    button {
-        padding: 0 20px;
-        border: none;
-        background: #4caf50;
-        color: white;
-        cursor: pointer;
-        font-size: 16px;
-    }
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    background: #343541;
+    color: white;
+    height: 100vh;
+    display: flex;
+}
+
+/* SIDEBAR */
+#sidebar {
+    width: 260px;
+    background: #202123;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+#newChat {
+    background: #343541;
+    border: 1px solid #555;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.chatItem {
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.chatItem:hover {
+    background: #2a2b32;
+}
+
+/* MAIN */
+#main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#chat {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.msg {
+    max-width: 800px;
+    margin: auto;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.user {
+    background: #444654;
+}
+
+.ai {
+    background: #343541;
+}
+
+/* INPUT */
+#inputBar {
+    border-top: 1px solid #555;
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+#plus {
+    background: #555;
+    border: none;
+    color: white;
+    width: 40px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+#input {
+    flex: 1;
+    padding: 15px;
+    border-radius: 8px;
+    border: none;
+    background: #40414f;
+    color: white;
+    font-size: 16px;
+}
+#input:focus { outline: none; }
+
+#send {
+    background: #19c37d;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: black;
+    font-weight: bold;
+}
 </style>
 </head>
+
 <body>
 
-<div id="chatContainer">
-    <div id="chat"></div>
-    <div id="inputContainer">
-        <input type="text" id="userInput" placeholder="Napisz coś...">
-        <button onclick="sendMessage()">Wyślij</button>
-    </div>
-</div>
-
-<script>
-const chat = document.getElementById('chat');
-const userInput = document.getElementById('userInput');
-
-// Baza odpowiedzi AI
-const responses = {
-    "cześć": "Siema! Jak leci?",
-    "hej": "Hej! Co tam u Ciebie?",
-    "jak się masz": "U mnie wszystko spoko, a u Ciebie?",
-    "dom": "Dom to miejsce, gdzie serce.",
-    "default": "Nie wiem co odpowiedzieć na to..."
-};
-
-function sendMessage() {
-    const text = userInput.value.trim();
-    if(!text) return;
-    
-    appendMessage("user", text);
-    userInput.value = "";
-    
-    const response = getResponse(text.toLowerCase());
-    setTimeout(() => appendMessage("ai", response), 500);
-}
-
-function appendMessage(sender, message) {
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message", sender);
-    msgDiv.textContent = message;
-    chat.appendChild(msgDiv);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function getResponse(input) {
-    for (let key in responses) {
-        if(input.includes(key)) return responses[key];
-    }
-    return responses["default"];
-}
-
-// Wysłanie Enterem
-userInput.addEventListener("keydown", function(e) {
-    if(e.key === "Enter") sendMessage();
-});
-</script>
-</body>
-</html>
+<div id="sidebar">
+    <button id="newChat">+ Nowa rozmowa</button>
+    <div class="chatItem">
