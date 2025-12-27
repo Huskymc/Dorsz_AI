@@ -8,22 +8,24 @@
 <style>
 :root{
   --bg:#343541;
-  --side:#202123;
+  --sidebar:#202123;
   --panel:#40414f;
-  --text:#ffffff;
-  --muted:#bdbdbd;
+  --border:#565869;
+  --text:#ececf1;
+  --muted:#9fa1a9;
 }
 .light{
-  --bg:#f5f5f5;
-  --side:#eaeaea;
+  --bg:#ffffff;
+  --sidebar:#f7f7f8;
   --panel:#ffffff;
+  --border:#d9d9e3;
   --text:#000000;
-  --muted:#555;
+  --muted:#6e6e80;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
   background:var(--bg);
   color:var(--text);
 }
@@ -32,39 +34,67 @@ body{
 /* SIDEBAR */
 #sidebar{
   width:260px;
-  background:var(--side);
-  padding:10px;
+  background:var(--sidebar);
   display:flex;
   flex-direction:column;
+  padding:10px;
 }
-button{
-  background:var(--panel);
-  border:1px solid #555;
+#newChat{
+  background:none;
+  border:1px solid var(--border);
   color:var(--text);
+  padding:10px;
+  border-radius:6px;
+  cursor:pointer;
+  text-align:left;
+}
+#newChat:hover{background:rgba(255,255,255,.05)}
+#history{
+  margin-top:10px;
+  flex:1;
+  overflow-y:auto;
+}
+.hist{
   padding:8px;
   border-radius:6px;
   cursor:pointer;
+  font-size:14px;
 }
-button:hover{opacity:.85}
-#history{flex:1;overflow-y:auto;margin-top:10px}
-.hist{padding:6px;border-radius:6px;cursor:pointer}
-.hist:hover{background:rgba(255,255,255,.1)}
+.hist:hover{background:rgba(255,255,255,.08)}
 
 /* CHAT */
-#chat{flex:1;display:flex;flex-direction:column}
-#messages{flex:1;overflow-y:auto;padding:20px}
-.msg{max-width:720px;margin:0 auto 20px;line-height:1.6}
+#chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+#messages{
+  flex:1;
+  overflow-y:auto;
+  padding:20px;
+}
+.msg{
+  max-width:750px;
+  margin:0 auto 24px;
+  line-height:1.65;
+  white-space:pre-wrap;
+}
 .user{font-weight:600}
-.ai{color:var(--muted)}
+.ai{color:var(--text)}
 
 /* INPUT */
-#inputBox{border-top:1px solid #555;padding:15px}
+#inputArea{
+  border-top:1px solid var(--border);
+  padding:15px;
+}
 #inputWrap{
-  max-width:720px;
+  max-width:750px;
   margin:auto;
   display:flex;
+  align-items:center;
   background:var(--panel);
-  border-radius:8px;
+  border-radius:12px;
+  border:1px solid var(--border);
 }
 #input{
   flex:1;
@@ -72,32 +102,40 @@ button:hover{opacity:.85}
   border:none;
   color:var(--text);
   padding:14px;
+  font-size:15px;
   outline:none;
 }
 #send{
   background:none;
   border:none;
   color:var(--muted);
-  font-size:18px;
+  font-size:20px;
   padding:0 14px;
+  cursor:pointer;
 }
+#send:hover{color:var(--text)}
 
 /* SETTINGS */
 #settings{
-  margin-top:10px;
-  font-size:14px;
+  border-top:1px solid var(--border);
+  padding:10px;
+  font-size:13px;
 }
 select{
   width:100%;
   margin-top:5px;
-  padding:5px;
+  padding:6px;
+  background:var(--panel);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:6px;
 }
 canvas{
-  max-width:720px;
+  max-width:750px;
   margin:10px auto;
   display:block;
-  border-radius:10px;
-  border:1px solid #555;
+  border-radius:12px;
+  border:1px solid var(--border);
 }
 </style>
 </head>
@@ -106,171 +144,5 @@ canvas{
 <div id="app">
 
 <div id="sidebar">
-  <button onclick="newChat()">+ New chat</button>
+  <button id="newCh
 
-  <div id="settings">
-    <label>Motyw</label>
-    <select id="themeSel">
-      <option value="dark">Ciemny</option>
-      <option value="light">Jasny</option>
-    </select>
-
-    <label>Styl odpowiedzi</label>
-    <select id="styleSel">
-      <option value="neutral">Neutralny</option>
-      <option value="luźny">Luźny</option>
-      <option value="konkretny">Konkretny</option>
-      <option value="techniczny">Techniczny</option>
-  padding:12px;
-  border-radius:20px;
-  border:1px solid #ccc;
-  font-size:14px;
-}
-#send{
-  margin-left:10px;
-  width:45px;
-  height:45px;
-  border:none;
-  border-radius:50%;
-  background:#4f9aff;
-  color:#fff;
-  font-size:18px;
-  cursor:pointer;
-}
-#send:hover{
-  background:#2979ff;
-}
-</style>
-</head>
-
-<body>
-
-<div id="app">
-  <div id="sidebar">
-    <h2>DorszAI</h2>
-    <p>Frontend AI (GitHub Pages)</p>
-  </div>
-
-  <div id="chat">
-    <div id="messages"></div>
-
-    <div id="inputBox">
-      <input id="input" placeholder="Napisz wiadomość..." autocomplete="off">
-      <button id="send">➤</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const input = document.getElementById("input");
-const sendBtn = document.getElementById("send");
-const messages = document.getElementById("messages");
-
-// ENTER
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter") sendMessage();
-});
-
-// KLIK
-sendBtn.addEventListener("click", sendMessage);
-
-function sendMessage(){
-  const text = input.value.trim();
-  if(!text) return;
-
-  addMessage(text, "user");
-  input.value = "";
-
-  setTimeout(() => {
-    const reply = dorszAI(text);
-    addMessage(reply, "ai");
-  }, 300);
-}
-
-function addMessage(text, type){
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.textContent = text;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
-
-// ======= MÓZG DORSZ AI =======
-function dorszAI(text){
-  const t = text.toLowerCase();
-
-  if(t === "elo" || t === "siema" || t === "hej")
-    return "Siema 👋 Działam poprawnie.";
-
-  if(t.includes("kim jesteś"))
-    return "Jestem DorszAI — frontendowa wersja AI działająca na GitHub Pages.";
-
-  if(t.includes("github"))
-    return "Tak, działam bez serwera. HTML + CSS + JS.";
-
-  if(t.includes("co potrafisz"))
-    return "Rozmowa, logika, interakcja. Backend AI można dodać później.";
-
-  if(t === "true")
-    return "true"; // nie tłumaczy
-
-  return "Rozumiem wiadomość. Możesz pisać dalej.";
-}
-
-// Wiadomość startowa
-addMessage("Cześć! Jestem DorszAI. Napisz coś 🙂", "ai");
-</script>
-
-</body>
-</html>
-
-    // Symulacja AI
-    let reply = generateAIReply(text);
-    appendMessage(reply,'ai');
-    history.push({role:'ai',text:reply});
-}
-
-function newConversation(){
-    messagesEl.innerHTML='';
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    history=[];
-}
-
-function generateAIReply(input){
-    const text=input.toLowerCase();
-    if(text.includes("cześć")||text.includes("hej")||text.includes("siema")) return "Siema! 👋 Jak leci?";
-    if(text.includes("kim jesteś")) return "Jestem Dorsz AI – działam w czystym JS w przeglądarce!";
-    if(text.includes("pomoc")) return "Mogę odpowiadać, tłumaczyć, generować kod, tworzyć obrazy i pamiętać historię rozmowy.";
-    if(text.includes("obraz")||text.includes("narysuj")) return "Kliknij przycisk 'Generuj obraz' aby zobaczyć obraz.";
-    return "Rozumiem sens, ale potrzebuję więcej informacji.";
-}
-
-// ====== GENERATOR OBRAZÓW ======
-function generateImage(){
-    const width=canvas.width;
-    const height=canvas.height;
-    // gradient tła
-    const grad=ctx.createLinearGradient(0,0,width,height);
-    grad.addColorStop(0,randomColor());
-    grad.addColorStop(1,randomColor());
-    ctx.fillStyle=grad;
-    ctx.fillRect(0,0,width,height);
-
-    // losowe kształty
-    for(let i=0;i<50;i++){
-        ctx.fillStyle=randomColor();
-        ctx.beginPath();
-        ctx.arc(Math.random()*width,Math.random()*height,Math.random()*50,0,Math.PI*2);
-        ctx.fill();
-    }
-}
-
-function randomColor(){
-    const r=Math.floor(Math.random()*256);
-    const g=Math.floor(Math.random()*256);
-    const b=Math.floor(Math.random()*256);
-    return `rgb(${r},${g},${b})`;
-}
-</script>
-</body>
-</html>
