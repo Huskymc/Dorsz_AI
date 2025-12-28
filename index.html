@@ -961,4 +961,434 @@
             <div class="setting-group">
                 <label>Model AI</label>
                 <select id="modelSelect">
-                    <option 
+                    <option value="doszhub-1.0">DoszHub 1.0 (Domyślny)</option>
+                    <option value="doszhub-1.0-fast">DoszHub 1.0 Fast</option>
+                    <option value="doszhub-1.0-creative">DoszHub 1.0 Creative</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Temperatura (kreatywność)</label>
+                <div class="slider-container">
+                    <input type="range" id="temperature" min="0" max="100" value="70" oninput="updateSliderValue('temperature', 'tempValue')">
+                    <span class="slider-value" id="tempValue">0.7</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Maksymalna długość odpowiedzi</label>
+                <div class="slider-container">
+                    <input type="range" id="maxTokens" min="100" max="4000" value="2000" step="100" oninput="updateSliderValue('maxTokens', 'tokensValue', true)">
+                    <span class="slider-value" id="tokensValue">2000</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Klucz API (opcjonalnie)</label>
+                <input type="password" id="apiKey" placeholder="Wprowadź klucz API...">
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="saveSettings()">
+                <i class="fas fa-save"></i>
+                Zapisz ustawienia
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // DoszHub AI 1.0v - Main JavaScript
+        // ========================================
+
+        // Stan aplikacji
+        const appState = {
+            messages: [],
+            isTyping: false,
+            settings: {
+                model: 'doszhub-1.0',
+                temperature: 0.7,
+                maxTokens: 2000,
+                apiKey: ''
+            }
+        };
+
+        // Baza wiedzy modelu DoszHub (symulacja)
+        const doszHubKnowledge = {
+            greetings: [
+                "Cześć! 👋 Jestem DoszHub AI. Jak mogę Ci dzisiaj pomóc?",
+                "Witaj! Jestem gotowy do pomocy. Co chciałbyś omówić?",
+                "Hej! DoszHub AI do usług. W czym mogę Ci pomóc?"
+            ],
+            
+            capabilities: `Jako DoszHub AI 1.0v mogę Ci pomóc w wielu obszarach:
+
+🔹 **Programowanie** - pisanie, debugowanie i wyjaśnianie kodu
+🔹 **Analiza danych** - pomoc w analizie i wizualizacji
+🔹 **Pisanie tekstów** - artykuły, emaile, dokumentacja
+🔹 **Nauka** - wyjaśnianie konceptów i zagadnień
+🔹 **Kreatywność** - burza mózgów, pomysły
+🔹 **Tłumaczenia** - między różnymi językami
+
+Wystarczy, że opiszesz swoje zadanie!`,
+
+            codePatterns: {
+                javascript: `\`\`\`javascript
+// Przykładowa funkcja sortowania
+function sortArray(arr, ascending = true) {
+    return arr.slice().sort((a, b) => {
+        return ascending ? a - b : b - a;
+    });
+}
+
+// Użycie:
+const numbers = [5, 2, 8, 1, 9];
+console.log(sortArray(numbers)); // [1, 2, 5, 8, 9]
+console.log(sortArray(numbers, false)); // [9, 8, 5, 2, 1]
+\`\`\``,
+                python: `\`\`\`python
+# Przykładowa funkcja sortowania
+def sort_array(arr, ascending=True):
+    return sorted(arr, reverse=not ascending)
+
+# Użycie:
+numbers = [5, 2, 8, 1, 9]
+print(sort_array(numbers))  # [1, 2, 5, 8, 9]
+print(sort_array(numbers, False))  # [9, 8, 5, 2, 1]
+\`\`\``
+            }
+        };
+
+        // Inicjalizacja aplikacji
+        document.addEventListener('DOMContentLoaded', () => {
+            generateParticles();
+            loadSettings();
+            setupEventListeners();
+        });
+
+        // Generowanie cząsteczek tła
+        function generateParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            const input = document.getElementById('messageInput');
+            input.addEventListener('input', () => {
+                const count = input.value.length;
+                document.getElementById('charCount').textContent = `${count} / 4000`;
+            });
+
+            document.getElementById('toggleSidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+
+        // Auto-resize textarea
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+        }
+
+        // Obsługa klawiatury
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Nowa rozmowa
+        function newChat() {
+            appState.messages = [];
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('chatMessages').style.display = 'none';
+            document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('messageInput').value = '';
+            document.getElementById('charCount').textContent = '0 / 4000';
+        }
+
+        // Wysyłanie sugestii
+        function sendSuggestion(text) {
+            document.getElementById('messageInput').value = text;
+            sendMessage();
+        }
+
+        // Główna funkcja wysyłania wiadomości
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || appState.isTyping) return;
+
+            // Ukryj ekran powitalny, pokaż chat
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatMessages').style.display = 'flex';
+
+            // Dodaj wiadomość użytkownika
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('charCount').textContent = '0 / 4000';
+
+            // Pokaż wskaźnik pisania
+            appState.isTyping = true;
+            showTypingIndicator();
+
+            // Symuluj odpowiedź AI
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = generateAIResponse(message);
+                addMessage(response, 'ai');
+                appState.isTyping = false;
+            }, 1500 + Math.random() * 1500);
+        }
+
+        // Dodawanie wiadomości do chatu
+        function addMessage(content, type) {
+            const container = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-${type === 'ai' ? 'robot' : 'user'}"></i>
+                </div>
+                <div class="message-content">
+                    <p>${formatMessage(content)}</p>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            appState.messages.push({ content, type, time });
+        }
+
+        // Formatowanie wiadomości (markdown-like)
+        function formatMessage(text) {
+            return text
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Wskaźnik pisania
+        function showTypingIndicator() {
+            const container = document.getElementById('chatMessages');
+            const indicator = document.createElement('div');
+            indicator.id = 'typingIndicator';
+            indicator.className = 'message ai';
+            indicator.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(indicator);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        // ========================================
+        // DoszHub AI - Generator odpowiedzi
+        // ========================================
+        function generateAIResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            
+            // Powitania
+            if (msg.match(/^(cześć|hej|witaj|siema|dzień dobry|hello|hi)/)) {
+                return doszHubKnowledge.greetings[Math.floor(Math.random() * doszHubKnowledge.greetings.length)];
+            }
+            
+            // Pytanie o możliwości
+            if (msg.includes('co umiesz') || msg.includes('co potrafisz') || msg.includes('jak możesz pomóc')) {
+                return doszHubKnowledge.capabilities;
+            }
+            
+            // Pytania o kod JavaScript
+            if (msg.includes('javascript') || msg.includes('js') && (msg.includes('sortow') || msg.includes('funkcj'))) {
+                return `Oto przykładowa funkcja sortowania w JavaScript:\n\n${doszHubKnowledge.codePatterns.javascript}\n\nMogę dostosować ten kod do Twoich potrzeb. Co dokładnie chcesz osiągnąć?`;
+            }
+            
+            // Pytania o kod Python
+            if (msg.includes('python') && (msg.includes('sortow') || msg.includes('funkcj'))) {
+                return `Oto przykładowa funkcja sortowania w Pythonie:\n\n${doszHubKnowledge.codePatterns.python}\n\nCzy chcesz, żebym wyjaśnił jak to działa lub zmodyfikował kod?`;
+            }
+            
+            // Machine Learning
+            if (msg.includes('machine learning') || msg.includes('ml') || msg.includes('uczenie maszynowe')) {
+                return `**Machine Learning (Uczenie Maszynowe)** to dziedzina sztucznej inteligencji, która pozwala komputerom uczyć się z danych bez jawnego programowania.
+
+**Główne typy ML:**
+
+🔹 **Uczenie nadzorowane** - model uczy się na danych z etykietami
+   - Regresja (przewidywanie wartości)
+   - Klasyfikacja (przypisywanie kategorii)
+
+🔹 **Uczenie nienadzorowane** - model szuka wzorców w danych
+   - Klasteryzacja (grupowanie)
+   - Redukcja wymiarowości
+
+🔹 **Uczenie ze wzmocnieniem** - model uczy się przez próby i błędy
+
+**Popularne biblioteki:**
+- Python: scikit-learn, TensorFlow, PyTorch
+- JavaScript: TensorFlow.js, Brain.js
+
+Czy chcesz, żebym zagłębił się w któryś z tych tematów?`;
+            }
+            
+            // Email
+            if (msg.includes('email') || msg.includes('mail')) {
+                return `Chętnie pomogę napisać profesjonalny email! 📧
+
+Potrzebuję kilku informacji:
+
+1. **Cel emaila** - np. prośba, podziękowanie, reklamacja, oferta
+2. **Odbiorca** - formalny/nieformalny, przełożony/klient/współpracownik
+3. **Główny przekaz** - co chcesz zakomunikować
+4. **Ton** - profesjonalny, przyjazny, stanowczy
+
+Przykładowy szablon:
+
+\`\`\`
+Temat: [Jasny i konkretny temat]
+
+Szanowny Panie/Szanowna Pani [Nazwisko],
+
+[Wstęp - kontekst/powód pisania]
+
+[Treść główna - szczegóły]
+
+[Zakończenie - call to action lub podsumowanie]
+
+Z poważaniem,
+[Twoje imię i nazwisko]
+\`\`\`
+
+Podaj mi szczegóły, a napiszę spersonalizowany email!`;
+            }
+            
+            // Pomysły na aplikację
+            if (msg.includes('pomysł') && (msg.includes('aplikacj') || msg.includes('app'))) {
+                return `Oto **10 pomysłów na aplikację mobilną** w 2024:
+
+📱 **Lifestyle:**
+1. **Habit Tracker AI** - śledzenie nawyków z AI coachem
+2. **Mindful Moments** - mikro-medytacje dostosowane do kalendarza
+
+💼 **Produktywność:**
+3. **Focus Flow** - blokowanie rozpraszaczy + technika Pomodoro
+4. **Voice Notes Pro** - notatki głosowe z automatyczną transkrypcją
+
+🎮 **Rozrywka:**
+5. **Local Explorer** - gamifikowane odkrywanie okolicy
+6. **Skill Swap** - wymiana umiejętności między użytkownikami
+
+🛒 **E-commerce:**
+7. **Sustainable Shop** - marketplace dla eko-produktów
+8. **Price Alert** - śledzenie cen z predykcją AI
+
+🏥 **Zdrowie:**
+9. **Sleep Optimizer** - analiza snu + inteligentny budzik
+10. **Meal Prep AI** - planowanie posiłków z AI dietetykiem
+
+Który pomysł Cię interesuje? Mogę rozwinąć szczegóły, zaproponować funkcje lub pomóc z architekturą!`;
+            }
+            
+            // Domyślna odpowiedź
+            return `Dziękuję za wiadomość! 🤖
+
+Przeanalizowałem Twoje zapytanie: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"
+
+Jako DoszHub AI 1.0v mogę Ci pomóc w wielu obszarach:
+- 💻 Programowanie i debugging
+- 📊 Analiza i wyjaśnianie danych
+- ✍️ Pisanie i redakcja tekstów
+- 🎓 Nauka i wyjaśnianie konceptów
+- 💡 Generowanie pomysłów
+
+Czy mógłbyś doprecyzować, czego dokładnie potrzebujesz? Im więcej szczegółów podasz, tym lepiej będę mógł Ci pomóc!`;
+        }
+
+        // ========================================
+        // Ustawienia
+        // ========================================
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function updateSliderValue(sliderId, valueId, isInt = false) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(valueId);
+            
+            if (isInt) {
+                valueSpan.textContent = slider.value;
+            } else {
+                valueSpan.textContent = (slider.value / 100).toFixed(1);
+            }
+        }
+
+        function saveSettings() {
+            appState.settings = {
+                model: document.getElementById('modelSelect').value,
+                temperature: document.getElementById('temperature').value / 100,
+                maxTokens: parseInt(document.getElementById('maxTokens').value),
+                apiKey: document.getElementById('apiKey').value
+            };
+            
+            localStorage.setItem('doszHubSettings', JSON.stringify(appState.settings));
+            closeSettings();
+            
+            // Pokaż powiadomienie
+            alert('Ustawienia zostały zapisane!');
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('doszHubSettings');
+            if (saved) {
+                appState.settings = JSON.parse(saved);
+                document.getElementById('modelSelect').value = appState.settings.model;
+                document.getElementById('temperature').value = appState.settings.temperature * 100;
+                document.getElementById('maxTokens').value = appState.settings.maxTokens;
+                document.getElementById('apiKey').value = appState.settings.apiKey || '';
+                updateSliderValue('temperature', 'tempValue');
+                updateSliderValue('maxTokens', 'tokensValue', true);
+            }
+        }
+
+        // Zamknij modal klikając poza nim
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') {
+                closeSettings();
+            }
+        });
+    </script>
+</body>
+</html>
