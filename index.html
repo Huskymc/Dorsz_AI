@@ -1,280 +1,131 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<title>DorszAI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoszHub AI 1.0v - Inteligentny Asystent</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-:root{
-  --bg:#343541;
-  --sidebar:#202123;
-  --panel:#40414f;
-  --border:#565869;
-  --text:#ececf1;
-  --muted:#9fa1a9;
-}
-.light{
-  --bg:#ffffff;
-  --sidebar:#f7f7f8;
-  --panel:#ffffff;
-  --border:#d9d9e3;
-  --text:#000000;
-  --muted:#6e6e80;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont;
-  background:var(--bg);
-  color:var(--text);
-}
-#app{display:flex;height:100vh}
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --bg-dark: #0f0f23;
+            --bg-card: #1a1a2e;
+            --bg-input: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --border: #2d3748;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --gradient-2: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+        }
 
-/* SIDEBAR */
-#sidebar{
-  width:260px;
-  background:var(--sidebar);
-  display:flex;
-  flex-direction:column;
-  padding:10px;
-}
-#newChat{
-  background:none;
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:10px;
-  border-radius:6px;
-  cursor:pointer;
-  text-align:left;
-}
-#newChat:hover{background:rgba(255,255,255,.05)}
-#history{
-  margin-top:10px;
-  flex:1;
-  overflow-y:auto;
-}
-.hist{
-  padding:8px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:14px;
-}
-.hist:hover{background:rgba(255,255,255,.08)}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-/* CHAT */
-#chat{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-#messages{
-  flex:1;
-  overflow-y:auto;
-  padding:20px;
-}
-.msg{
-  max-width:750px;
-  margin:0 auto 24px;
-  line-height:1.65;
-  white-space:pre-wrap;
-}
-.user{font-weight:600}
-.ai{color:var(--text)}
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
 
-/* INPUT */
-#inputArea{
-  border-top:1px solid var(--border);
-  padding:15px;
-}
-#inputWrap{
-  max-width:750px;
-  margin:auto;
-  display:flex;
-  align-items:center;
-  background:var(--panel);
-  border-radius:12px;
-  border:1px solid var(--border);
-}
-#input{
-  flex:1;
-  background:none;
-  border:none;
-  color:var(--text);
-  padding:14px;
-  font-size:15px;
-  outline:none;
-}
-#send{
-  background:none;
-  border:none;
-  color:var(--muted);
-  font-size:20px;
-  padding:0 14px;
-  cursor:pointer;
-}
-#send:hover{color:var(--text)}
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            animation: bgRotate 30s linear infinite;
+        }
 
-/* SETTINGS */
-#settings{
-  border-top:1px solid var(--border);
-  padding:10px;
-  font-size:13px;
-}
-select{
-  width:100%;
-  margin-top:5px;
-  padding:6px;
-  background:var(--panel);
-  color:var(--text);
-  border:1px solid var(--border);
-  border-radius:6px;
-}
-canvas{
-  max-width:750px;
-  margin:10px auto;
-  display:block;
-  border-radius:12px;
-  border:1px solid var(--border);
-}
-</style>
-</head>
+        @keyframes bgRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-<body>
-<div id="app">
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
 
-<div id="sidebar">
-  <button id="newChat">＋ New chat</button>
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite;
+        }
 
-  <div id="history"></div>
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
 
-  <div id="settings">
-    <label>Motyw</label>
-    <select id="theme">
-      <option value="dark">Ciemny</option>
-      <option value="light">Jasny</option>
-    </select>
+        /* Header */
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
 
-    <label>Styl odpowiedzi</label>
-    <select id="style">
-      <option value="neutral">Neutralny</option>
-      <option value="konkretny">Konkretny</option>
-      <option value="techniczny">Techniczny</option>
-    </select>
-  </div>
-</div>
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-<div id="chat">
-  <div id="messages"></div>
-  <canvas id="canvas" width="512" height="512"></canvas>
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-  <div id="inputArea">
-    <div id="inputWrap">
-      <input id="input" placeholder="Send a message…" autocomplete="off">
-      <button id="send">➤</button>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<script>
-/* ===== STATE ===== */
-let chats = JSON.parse(localStorage.getItem("dorsz_chats")) || [[]];
-let current = chats.length-1;
-let settings = JSON.parse(localStorage.getItem("dorsz_settings")) || {
-  theme:"dark",
-  style:"neutral"
-};
-
-const body=document.body;
-const input=document.getElementById("input");
-const messages=document.getElementById("messages");
-const historyEl=document.getElementById("history");
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
-
-/* INIT */
-applySettings();
-renderHistory();
-loadChat();
-
-input.onkeydown=e=>e.key==="Enter"&&send();
-send.onclick=send;
-newChat.onclick=()=>{chats.push([]);current=chats.length-1;save();renderHistory();loadChat();};
-
-theme.value=settings.theme;
-style.value=settings.style;
-
-theme.onchange=e=>{settings.theme=e.target.value;applySettings();saveSettings();};
-style.onchange=e=>{settings.style=e.target.value;saveSettings();};
-
-function applySettings(){
-  body.className=settings.theme==="light"?"light":"";
-}
-
-/* CHAT */
-function send(){
-  const t=input.value.trim();
-  if(!t) return;
-  input.value="";
-  chats[current].push({r:"user",t});
-  chats[current].push({r:"ai",t:brain(t)});
-  save();
-  loadChat();
-}
-function loadChat(){
-  messages.innerHTML="";
-  chats[current].forEach(m=>{
-    const d=document.createElement("div");
-    d.className="msg "+m.r;
-    d.textContent=m.t;
-    messages.appendChild(d);
-  });
-  messages.scrollTop=messages.scrollHeight;
-}
-function renderHistory(){
-  historyEl.innerHTML="";
-  chats.forEach((c,i)=>{
-    const h=document.createElement("div");
-    h.className="hist";
-    h.textContent=c[0]?c[0].t.slice(0,24):"New chat";
-    h.onclick=()=>{current=i;loadChat();};
-    historyEl.appendChild(h);
-  });
-}
-function save(){localStorage.setItem("dorsz_chats",JSON.stringify(chats));}
-function saveSettings(){localStorage.setItem("dorsz_settings",JSON.stringify(settings));}
-
-/* LOGIKA */
-function brain(text){
-  const t=text.toLowerCase();
-  if(t==="true") return "true";
-  if(/hej|siema|elo/.test(t)) return styleOut("Cześć. Słucham.");
-  if(/kim.*jeste/.test(t)) return styleOut("Jestem DorszAI. Frontendowa kopia interfejsu ChatGPT.");
-  if(/obraz|rysuj|generuj/.test(t)){ draw(); return styleOut("Obraz wygenerowany."); }
-  if(t.endsWith("?")) return styleOut("Dobre pytanie. Sprecyzuj, czego dokładnie oczekujesz.");
-  return styleOut("Zrozumiałem. Możemy to rozwinąć.");
-}
-function styleOut(t){
-  if(settings.style==="techniczny") return "[OK] "+t;
-  if(settings.style==="konkretny") return t.replace(/\.$/,".");
-  return t;
-}
-
-/* IMAGE */
-function draw(){
-  const g=ctx.createLinearGradient(0,0,512,512);
-  g.addColorStop(0,r()); g.addColorStop(1,r());
-  ctx.fillStyle=g; ctx.fillRect(0,0,512,512);
-  for(let i=0;i<25;i++){
-    ctx.fillStyle=r();
-    ctx.beginPath();
-    ctx.arc(Math.random()*512,Math.random()*512,Math.random()*35,0,6.28);
-    ctx.fill();
-  }
-}
-function r(){return `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`}
-</script>
-</body>
-</html>
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            
