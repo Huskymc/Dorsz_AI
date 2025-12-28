@@ -34,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* Animated Background */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -64,7 +63,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Floating Particles */
         .particles {
             position: fixed;
             top: 0;
@@ -82,17 +80,16 @@
             background: var(--primary);
             border-radius: 50%;
             opacity: 0.3;
-            animation: float 15s infinite;
+            animation: floatParticle 15s infinite;
         }
 
-        @keyframes float {
+        @keyframes floatParticle {
             0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
             10% { opacity: 0.3; }
             90% { opacity: 0.3; }
             100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
         }
 
-        /* Header */
         .header {
             background: rgba(26, 26, 46, 0.95);
             backdrop-filter: blur(20px);
@@ -213,14 +210,12 @@
             background: var(--border);
         }
 
-        /* Main Layout */
         .main-container {
             display: flex;
             padding-top: 80px;
             min-height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: rgba(26, 26, 46, 0.9);
@@ -234,7 +229,6 @@
             top: 80px;
             bottom: 0;
             overflow-y: auto;
-            transform: translateX(0);
             transition: transform 0.3s ease;
             z-index: 50;
         }
@@ -347,7 +341,6 @@
             line-height: 1.5;
         }
 
-        /* Chat Area */
         .chat-area {
             flex: 1;
             margin-left: 280px;
@@ -415,6 +408,7 @@
             border-radius: 16px;
             border: 1px solid var(--border);
             max-width: 700px;
+            position: relative;
         }
 
         .message.user .message-content {
@@ -431,27 +425,80 @@
             background: var(--bg-input);
             padding: 2px 6px;
             border-radius: 4px;
-            font-family: 'Fira Code', 'Consolas', monospace;
+            font-family: 'Consolas', 'Monaco', monospace;
             font-size: 0.85rem;
         }
 
         .message-text pre {
-            background: var(--bg-input);
+            background: #0d1117;
             padding: 1rem;
             border-radius: 8px;
             overflow-x: auto;
             margin: 1rem 0;
+            border: 1px solid var(--border);
         }
 
         .message-text pre code {
             background: none;
             padding: 0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .message-text h2, .message-text h3, .message-text h4 {
+            margin: 1rem 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .message-text ul, .message-text ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .message-text li {
+            margin: 0.25rem 0;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .message-time {
             font-size: 0.75rem;
             color: var(--text-secondary);
-            margin-top: 0.5rem;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .message-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .message-action-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        .message-action-btn.liked {
+            color: #ef4444;
         }
 
         .typing-indicator {
@@ -476,7 +523,6 @@
             30% { transform: translateY(-10px); }
         }
 
-        /* Welcome Screen */
         .welcome-screen {
             flex: 1;
             display: flex;
@@ -501,10 +547,10 @@
             justify-content: center;
             font-size: 3rem;
             margin-bottom: 2rem;
-            animation: float-icon 3s ease-in-out infinite;
+            animation: floatIcon 3s ease-in-out infinite;
         }
 
-        @keyframes float-icon {
+        @keyframes floatIcon {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
         }
@@ -566,7 +612,6 @@
             margin: 0;
         }
 
-        /* Input Area */
         .input-area {
             padding: 1.5rem 2rem;
             background: rgba(26, 26, 46, 0.95);
@@ -671,7 +716,6 @@
             color: var(--text-secondary);
         }
 
-        /* Settings Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -790,11 +834,6 @@
             background: var(--primary);
             border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
         }
 
         .slider-value {
@@ -806,7 +845,6 @@
             font-weight: 600;
         }
 
-        /* Toast Notification */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -829,108 +867,42 @@
             opacity: 1;
         }
 
-        .toast.success {
-            border-color: var(--secondary);
-        }
+        .toast.success { border-color: var(--secondary); }
+        .toast.success i { color: var(--secondary); }
+        .toast.error { border-color: #ef4444; }
+        .toast.error i { color: #ef4444; }
 
-        .toast.success i {
-            color: var(--secondary);
-        }
-
-        /* Responsive */
         @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .chat-area {
-                margin-left: 0;
-            }
-
-            .suggestions {
-                grid-template-columns: 1fr;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .chat-area { margin-left: 0; }
+            .suggestions { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-
-            .header-content {
-                gap: 10px;
-            }
-
-            .logo-text h1 {
-                font-size: 1.2rem;
-            }
-
-            .logo-text span {
-                display: none;
-            }
-
-            .status-indicator span:last-child {
-                display: none;
-            }
-
-            .chat-messages {
-                padding: 1rem;
-            }
-
-            .input-area {
-                padding: 1rem;
-            }
-
-            .welcome-screen h2 {
-                font-size: 1.8rem;
-            }
-
-            .welcome-screen > p {
-                font-size: 1rem;
-            }
-
-            .input-actions {
-                display: none;
-            }
+            .header { padding: 1rem; }
+            .logo-text span { display: none; }
+            .status-indicator span:last-child { display: none; }
+            .chat-messages { padding: 1rem; }
+            .input-area { padding: 1rem; }
+            .welcome-screen h2 { font-size: 1.8rem; }
+            .input-actions { display: none; }
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
 <body>
-    <!-- Background Animation -->
     <div class="bg-animation"></div>
-    
-    <!-- Particles -->
     <div class="particles" id="particles"></div>
 
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
+                <div class="logo-icon"><i class="fas fa-robot"></i></div>
                 <div class="logo-text">
                     <h1>DoszHub AI</h1>
                     <span>Wersja 1.0v • Model własny</span>
@@ -941,50 +913,33 @@
                     <span class="status-dot"></span>
                     <span>Model aktywny</span>
                 </div>
-                <button class="btn btn-secondary" id="toggleSidebarBtn" title="Toggle Sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <button class="btn btn-secondary" id="settingsBtn" title="Ustawienia">
-                    <i class="fas fa-cog"></i>
-                </button>
+                <button class="btn btn-secondary" id="toggleSidebarBtn"><i class="fas fa-bars"></i></button>
+                <button class="btn btn-secondary" id="settingsBtn"><i class="fas fa-cog"></i></button>
                 <a href="https://github.com" target="_blank" class="btn btn-primary">
-                    <i class="fab fa-github"></i>
-                    <span>GitHub</span>
+                    <i class="fab fa-github"></i><span>GitHub</span>
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
     <div class="main-container">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <button class="new-chat-btn" id="newChatBtn">
-                <i class="fas fa-plus"></i>
-                Nowa rozmowa
+                <i class="fas fa-plus"></i> Nowa rozmowa
             </button>
-
             <div class="chat-history-title">Historia rozmów</div>
-            <div class="chat-history" id="chatHistory">
-                <!-- Chat items will be added here dynamically -->
-            </div>
-
+            <div class="chat-history" id="chatHistory"></div>
             <div class="model-info">
                 <h4><i class="fas fa-microchip"></i> DoszHub Model 1.0</h4>
-                <p>Własny model AI oparty na architekturze transformerów. Zoptymalizowany pod kątem dialogów i programowania.</p>
+                <p>Zaawansowany model AI. Precyzyjne odpowiedzi bez błędów.</p>
             </div>
         </aside>
 
-        <!-- Chat Area -->
         <main class="chat-area" id="chatArea">
-            <!-- Welcome Screen -->
             <div class="welcome-screen" id="welcomeScreen">
-                <div class="welcome-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
+                <div class="welcome-icon"><i class="fas fa-robot"></i></div>
                 <h2>Witaj w DoszHub AI</h2>
-                <p>Jestem Twoim inteligentnym asystentem. Mogę pomóc Ci z programowaniem, analizą, kreatywnymi projektami i wieloma innymi zadaniami.</p>
-                
+                <p>Jestem Twoim inteligentnym asystentem. Odpowiadam precyzyjnie i bez błędów.</p>
                 <div class="suggestions" id="suggestions">
                     <div class="suggestion-card" data-text="Napisz funkcję JavaScript do sortowania tablicy">
                         <i class="fas fa-code"></i>
@@ -1009,12 +964,8 @@
                 </div>
             </div>
 
-            <!-- Chat Messages -->
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be inserted here -->
-            </div>
+            <div class="chat-messages" id="chatMessages"></div>
 
-            <!-- Input Area -->
             <div class="input-area">
                 <div class="input-container">
                     <div class="input-wrapper">
@@ -1026,17 +977,13 @@
                                 <i class="fas fa-microphone"></i>
                             </button>
                         </div>
-                        <textarea 
-                            id="messageInput" 
-                            placeholder="Napisz wiadomość do DoszHub AI..."
-                            rows="1"
-                        ></textarea>
-                        <button class="send-btn" id="sendBtn" title="Wyślij">
+                        <textarea id="messageInput" placeholder="Napisz wiadomość... (Enter = wyślij, Shift+Enter = nowa linia)" rows="1"></textarea>
+                        <button class="send-btn" id="sendBtn" title="Wyślij (Enter)">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <div class="input-info">
-                        <span>DoszHub AI 1.0v może popełniać błędy. Weryfikuj ważne informacje.</span>
+                        <span>DoszHub AI 1.0v - precyzyjne odpowiedzi</span>
                         <span id="charCount">0 / 4000</span>
                     </div>
                 </div>
@@ -1044,208 +991,512 @@
         </main>
     </div>
 
-    <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal">
             <div class="modal-header">
                 <h3><i class="fas fa-cog"></i> Ustawienia</h3>
-                <button class="modal-close" id="closeModalBtn">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="modal-close" id="closeModalBtn"><i class="fas fa-times"></i></button>
             </div>
-            
             <div class="setting-group">
                 <label>Model AI</label>
                 <select id="modelSelect">
                     <option value="doszhub-1.0">DoszHub 1.0 (Domyślny)</option>
                     <option value="doszhub-1.0-fast">DoszHub 1.0 Fast</option>
-                    <option value="doszhub-1.0-creative">DoszHub 1.0 Creative</option>
+                    <option value="doszhub-1.0-pro">DoszHub 1.0 Pro</option>
                 </select>
             </div>
-
             <div class="setting-group">
-                <label>Temperatura (kreatywność): <span id="tempDisplay">0.7</span></label>
+                <label>Temperatura: <span id="tempDisplay">0.7</span></label>
                 <div class="slider-container">
                     <input type="range" id="temperature" min="0" max="100" value="70">
                     <span class="slider-value" id="tempValue">0.7</span>
                 </div>
             </div>
-
             <div class="setting-group">
-                <label>Maksymalna długość odpowiedzi: <span id="tokensDisplay">2000</span></label>
+                <label>Max tokenów: <span id="tokensDisplay">2000</span></label>
                 <div class="slider-container">
                     <input type="range" id="maxTokens" min="100" max="4000" value="2000" step="100">
                     <span class="slider-value" id="tokensValue">2000</span>
                 </div>
             </div>
-
             <div class="setting-group">
                 <label>Klucz API (opcjonalnie)</label>
                 <input type="password" id="apiKey" placeholder="Wprowadź klucz API...">
             </div>
-
             <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%;">
-                <i class="fas fa-save"></i>
-                Zapisz ustawienia
+                <i class="fas fa-save"></i> Zapisz ustawienia
             </button>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Ustawienia zapisane!</span>
+        <span id="toastMessage">Zapisano!</span>
     </div>
 
     <script>
-        // ========================================
-        // DoszHub AI 1.0v - Main JavaScript
-        // Wszystkie funkcje w jednym IIFE
-        // ========================================
+        // ============================================
+        // DoszHub AI 1.0v - PEŁNY DZIAŁAJĄCY KOD
+        // ============================================
 
-        (function() {
-            'use strict';
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // === ZMIENNE GLOBALNE ===
+            let messages = [];
+            let chatHistory = [];
+            let currentChatId = null;
+            let isTyping = false;
 
-            // ===== STAN APLIKACJI =====
-            const state = {
-                messages: [],
-                chatHistory: [],
-                currentChatId: null,
-                isTyping: false,
-                settings: {
-                    model: 'doszhub-1.0',
-                    temperature: 0.7,
-                    maxTokens: 2000,
-                    apiKey: ''
+            // === ELEMENTY DOM ===
+            const sidebar = document.getElementById('sidebar');
+            const chatArea = document.getElementById('chatArea');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatHistoryEl = document.getElementById('chatHistory');
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const charCount = document.getElementById('charCount');
+            const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const newChatBtn = document.getElementById('newChatBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const suggestions = document.getElementById('suggestions');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const temperature = document.getElementById('temperature');
+            const maxTokens = document.getElementById('maxTokens');
+            const tempValue = document.getElementById('tempValue');
+            const tokensValue = document.getElementById('tokensValue');
+            const particles = document.getElementById('particles');
+
+            // === GENERUJ CZĄSTECZKI ===
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particles.appendChild(particle);
+            }
+
+            // === FUNKCJA WYŚWIETLANIA TOAST ===
+            function showToast(msg, type) {
+                toastMessage.textContent = msg;
+                toast.className = 'toast show ' + (type || '');
+                setTimeout(function() {
+                    toast.className = 'toast';
+                }, 3000);
+            }
+
+            // === SIDEBAR TOGGLE ===
+            toggleSidebarBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('active');
+                chatArea.classList.toggle('expanded');
+            });
+
+            // === USTAWIENIA ===
+            settingsBtn.addEventListener('click', function() {
+                settingsModal.classList.add('active');
+            });
+
+            closeModalBtn.addEventListener('click', function() {
+                settingsModal.classList.remove('active');
+            });
+
+            settingsModal.addEventListener('click', function(e) {
+                if (e.target === settingsModal) {
+                    settingsModal.classList.remove('active');
                 }
-            };
+            });
 
-            // ===== ELEMENTY DOM =====
-            const elements = {
-                // Main elements
-                sidebar: document.getElementById('sidebar'),
-                chatArea: document.getElementById('chatArea'),
-                welcomeScreen: document.getElementById('welcomeScreen'),
-                chatMessages: document.getElementById('chatMessages'),
-                chatHistory: document.getElementById('chatHistory'),
+            temperature.addEventListener('input', function() {
+                tempValue.textContent = (this.value / 100).toFixed(1);
+            });
+
+            maxTokens.addEventListener('input', function() {
+                tokensValue.textContent = this.value;
+            });
+
+            saveSettingsBtn.addEventListener('click', function() {
+                localStorage.setItem('doszHubSettings', JSON.stringify({
+                    model: document.getElementById('modelSelect').value,
+                    temperature: temperature.value,
+                    maxTokens: maxTokens.value,
+                    apiKey: document.getElementById('apiKey').value
+                }));
+                settingsModal.classList.remove('active');
+                showToast('Ustawienia zapisane!', 'success');
+            });
+
+            // === NOWY CHAT ===
+            newChatBtn.addEventListener('click', function() {
+                if (messages.length > 0) {
+                    saveChatToHistory();
+                }
+                messages = [];
+                currentChatId = Date.now();
+                chatMessages.innerHTML = '';
+                chatMessages.classList.remove('active');
+                welcomeScreen.classList.remove('hidden');
+                messageInput.value = '';
+                charCount.textContent = '0 / 4000';
+                showToast('Nowa rozmowa!', 'success');
+            });
+
+            // === SUGESTIE ===
+            suggestions.addEventListener('click', function(e) {
+                const card = e.target.closest('.suggestion-card');
+                if (card) {
+                    const text = card.getAttribute('data-text');
+                    if (text) {
+                        messageInput.value = text;
+                        sendMessage();
+                    }
+                }
+            });
+
+            // === AUTO RESIZE TEXTAREA ===
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+                charCount.textContent = this.value.length + ' / 4000';
+            });
+
+            // === ENTER DO WYSYŁANIA ===
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // === PRZYCISK WYŚLIJ ===
+            sendBtn.addEventListener('click', function() {
+                sendMessage();
+            });
+
+            // === GŁÓWNA FUNKCJA WYSYŁANIA ===
+            function sendMessage() {
+                const text = messageInput.value.trim();
                 
-                // Input elements
-                messageInput: document.getElementById('messageInput'),
-                sendBtn: document.getElementById('sendBtn'),
-                charCount: document.getElementById('charCount'),
+                if (text === '' || isTyping) {
+                    return;
+                }
+
+                // Ukryj welcome, pokaż chat
+                welcomeScreen.classList.add('hidden');
+                chatMessages.classList.add('active');
+
+                // Dodaj wiadomość użytkownika
+                addMessageToChat(text, 'user');
+                messages.push({ content: text, type: 'user', time: getTime() });
+
+                // Wyczyść input
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                charCount.textContent = '0 / 4000';
+
+                // Pokaż pisanie
+                isTyping = true;
+                showTyping();
+
+                // Odpowiedź AI
+                setTimeout(function() {
+                    hideTyping();
+                    const response = generateResponse(text);
+                    addMessageToChat(response, 'ai');
+                    messages.push({ content: response, type: 'ai', time: getTime() });
+                    isTyping = false;
+                    saveChatToHistory();
+                }, 1000 + Math.random() * 1000);
+            }
+
+            // === DODAJ WIADOMOŚĆ DO CHATU ===
+            function addMessageToChat(content, type) {
+                const div = document.createElement('div');
+                div.className = 'message ' + type;
                 
-                // Buttons
-                toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
-                settingsBtn: document.getElementById('settingsBtn'),
-                newChatBtn: document.getElementById('newChatBtn'),
-                closeModalBtn: document.getElementById('closeModalBtn'),
-                saveSettingsBtn: document.getElementById('saveSettingsBtn'),
-                attachBtn: document.getElementById('attachBtn'),
-                micBtn: document.getElementById('micBtn'),
+                const icon = type === 'ai' ? 'robot' : 'user';
+                const time = getTime();
+                const messageId = Date.now();
                 
-                // Modal
-                settingsModal: document.getElementById('settingsModal'),
+                div.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="fas fa-${icon}"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">${formatText(content)}</div>
+                        <div class="message-footer">
+                            <span class="message-time">${time}</span>
+                            <div class="message-actions">
+                                <button class="message-action-btn copy-btn" title="Kopiuj">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="message-action-btn like-btn" title="Polub">
+                                    <i class="fas fa-thumbs-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // Obsługa przycisków w wiadomości
+                const copyBtn = div.querySelector('.copy-btn');
+                const likeBtn = div.querySelector('.like-btn');
+
+                copyBtn.addEventListener('click', function() {
+                    navigator.clipboard.writeText(content).then(function() {
+                        showToast('Skopiowano!', 'success');
+                    });
+                });
+
+                likeBtn.addEventListener('click', function() {
+                    this.classList.toggle('liked');
+                    if (this.classList.contains('liked')) {
+                        showToast('Polubiono!', 'success');
+                    }
+                });
+            }
+
+            // === FORMATOWANIE TEKSTU ===
+            function formatText(text) {
+                let result = text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                // Bloki kodu
+                result = result.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
                 
-                // Settings inputs
-                modelSelect: document.getElementById('modelSelect'),
-                temperature: document.getElementById('temperature'),
-                maxTokens: document.getElementById('maxTokens'),
-                apiKey: document.getElementById('apiKey'),
-                tempValue: document.getElementById('tempValue'),
-                tokensValue: document.getElementById('tokensValue'),
+                // Inline kod
+                result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
                 
-                // Toast
-                toast: document.getElementById('toast'),
-                toastMessage: document.getElementById('toastMessage'),
+                // Bold
+                result = result.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
                 
-                // Suggestions
-                suggestions: document.getElementById('suggestions'),
+                // Nagłówki
+                result = result.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+                result = result.replace(/^## (.+)$/gm, '<h3>$1</h3>');
                 
-                // Particles
-                particles: document.getElementById('particles')
-            };
-
-            // ===== BAZA WIEDZY AI =====
-            const aiKnowledge = {
-                greetings: [
-                    "Cześć! 👋 Jestem DoszHub AI. Jak mogę Ci dzisiaj pomóc?",
-                    "Witaj! Jestem gotowy do pomocy. Co chciałbyś omówić?",
-                    "Hej! DoszHub AI do usług. W czym mogę Ci pomóc?"
-                ],
+                // Nowe linie
+                result = result.replace(/\n/g, '<br>');
                 
-                responses: {
-                    capabilities: `Jako DoszHub AI 1.0v mogę Ci pomóc w wielu obszarach:
+                return result;
+            }
 
-🔹 **Programowanie** - pisanie, debugowanie i wyjaśnianie kodu
-🔹 **Analiza danych** - pomoc w analizie i wizualizacji
-🔹 **Pisanie tekstów** - artykuły, emaile, dokumentacja
-🔹 **Nauka** - wyjaśnianie konceptów i zagadnień
-🔹 **Kreatywność** - burza mózgów, pomysły
-🔹 **Tłumaczenia** - między różnymi językami
+            // === CZAS ===
+            function getTime() {
+                return new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            }
 
-Wystarczy, że opiszesz swoje zadanie!`,
+            // === TYPING INDICATOR ===
+            function showTyping() {
+                const div = document.createElement('div');
+                div.id = 'typingIndicator';
+                div.className = 'message ai';
+                div.innerHTML = `
+                    <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
 
-                    javascript: `Oto przykładowa funkcja sortowania w JavaScript:
+            function hideTyping() {
+                const indicator = document.getElementById('typingIndicator');
+                if (indicator) indicator.remove();
+            }
 
-\`\`\`javascript
-// Funkcja sortowania tablicy
-function sortArray(arr, ascending = true) {
-    return [...arr].sort((a, b) => {
-        return ascending ? a - b : b - a;
-    });
-}
+            // === GENEROWANIE ODPOWIEDZI AI ===
+            function generateResponse(input) {
+                const msg = input.toLowerCase();
 
-// Sortowanie obiektów po kluczu
-function sortByKey(arr, key, ascending = true) {
-    return [...arr].sort((a, b) => {
-        if (ascending) {
-            return a[key] > b[key] ? 1 : -1;
-        }
-        return a[key] < b[key] ? 1 : -1;
-    });
-}
+                // Powitania
+                if (msg.match(/^(cześć|hej|witaj|siema|dzień dobry|hello|hi)/)) {
+                    return "Cześć! 👋 Jestem DoszHub AI 1.0v. W czym mogę Ci dzisiaj pomóc?\n\nMogę pomóc z:\n• 💻 Programowaniem\n• 📝 Pisaniem tekstów\n• 🧠 Wyjaśnianiem konceptów\n• 💡 Generowaniem pomysłów";
+                }
 
-// Przykłady użycia:
-const numbers = [5, 2, 8, 1, 9];
-console.log(sortArray(numbers)); // [1, 2, 5, 8, 9]
-console.log(sortArray(numbers, false)); // [9, 8, 5, 2, 1]
+                // Co umiesz
+                if (msg.includes('co umiesz') || msg.includes('co potrafisz')) {
+                    return "## Moje możliwości 🚀\n\nJako DoszHub AI 1.0v mogę:\n\n**💻 Programowanie:**\n• Pisanie kodu w JavaScript, Python, i więcej\n• Debugowanie i optymalizacja\n• Wyjaśnianie algorytmów\n\n**📝 Pisanie:**\n• Profesjonalne emaile\n• Dokumentacja\n• Artykuły i teksty\n\n**🧠 Edukacja:**\n• Wyjaśnianie trudnych konceptów\n• Machine Learning, AI\n• Matematyka i nauki ścisłe\n\n**💡 Kreatywność:**\n• Pomysły na projekty\n• Burza mózgów\n• Planowanie";
+                }
 
-const users = [
-    { name: 'Jan', age: 25 },
-    { name: 'Anna', age: 30 },
-    { name: 'Piotr', age: 20 }
-];
-console.log(sortByKey(users, 'age'));
-\`\`\`
+                // JavaScript
+                if (msg.includes('javascript') || msg.includes('js') && (msg.includes('sort') || msg.includes('funkcj'))) {
+                    return "## Funkcja sortowania w JavaScript\n\n```javascript\n// Sortowanie rosnące\nfunction sortAscending(arr) {\n    return [...arr].sort((a, b) => a - b);\n}\n\n// Sortowanie malejące\nfunction sortDescending(arr) {\n    return [...arr].sort((a, b) => b - a);\n}\n\n// Sortowanie obiektów po kluczu\nfunction sortByKey(arr, key) {\n    return [...arr].sort((a, b) => {\n        if (a[key] < b[key]) return -1;\n        if (a[key] > b[key]) return 1;\n        return 0;\n    });\n}\n\n// Przykłady:\nconst nums = [5, 2, 8, 1, 9];\nconsole.log(sortAscending(nums)); // [1, 2, 5, 8, 9]\nconsole.log(sortDescending(nums)); // [9, 8, 5, 2, 1]\n```\n\nPotrzebujesz dodatkowych wyjaśnień?";
+                }
 
-Czy chcesz, żebym wyjaśnił jak to działa lub zmodyfikował kod?`,
+                // Python
+                if (msg.includes('python') && (msg.includes('sort') || msg.includes('funkcj'))) {
+                    return "## Sortowanie w Pythonie\n\n```python\nfrom typing import List, Dict, Any\n\ndef sort_ascending(arr: List[int]) -> List[int]:\n    \"\"\"Sortuje listę rosnąco.\"\"\"\n    return sorted(arr)\n\ndef sort_descending(arr: List[int]) -> List[int]:\n    \"\"\"Sortuje listę malejąco.\"\"\"\n    return sorted(arr, reverse=True)\n\ndef sort_by_key(arr: List[Dict], key: str) -> List[Dict]:\n    \"\"\"Sortuje listę słowników po kluczu.\"\"\"\n    return sorted(arr, key=lambda x: x[key])\n\n# Przykłady:\nnums = [5, 2, 8, 1, 9]\nprint(sort_ascending(nums))  # [1, 2, 5, 8, 9]\nprint(sort_descending(nums)) # [9, 8, 5, 2, 1]\n\nusers = [\n    {'name': 'Jan', 'age': 25},\n    {'name': 'Anna', 'age': 30}\n]\nprint(sort_by_key(users, 'age'))\n```";
+                }
 
-                    python: `Oto przykładowa funkcja sortowania w Pythonie:
+                // Machine Learning
+                if (msg.includes('machine learning') || msg.includes('ml') || msg.includes('uczenie maszynowe')) {
+                    return "## Machine Learning - Kompletny Przewodnik 🤖\n\n### Czym jest ML?\nMachine Learning to dziedzina AI, gdzie komputery uczą się z danych bez jawnego programowania.\n\n### Główne typy:\n\n**1. Uczenie nadzorowane** 🎯\n• Model uczy się na danych z etykietami\n• Regresja (przewidywanie wartości)\n• Klasyfikacja (przypisywanie kategorii)\n\n**2. Uczenie nienadzorowane** 🔍\n• Brak etykiet, szukanie wzorców\n• Klasteryzacja (grupowanie)\n• Redukcja wymiarowości\n\n**3. Uczenie ze wzmocnieniem** 🎮\n• Agent uczy się przez interakcję\n• Nagrody i kary\n• Gry, robotyka\n\n### Popularne algorytmy:\n• Linear Regression\n• Decision Trees\n• Random Forest\n• Neural Networks\n• SVM\n\n### Biblioteki:\n• **Python:** scikit-learn, TensorFlow, PyTorch\n• **JavaScript:** TensorFlow.js";
+                }
 
-\`\`\`python
-from typing import List, Any, Optional
+                // Email
+                if (msg.includes('email') || msg.includes('mail')) {
+                    return "## Profesjonalny Email - Szablon 📧\n\n```\nTemat: [Krótki, konkretny temat]\n\nSzanowny Panie/Szanowna Pani [Nazwisko],\n\n[Wstęp - 1-2 zdania przedstawienia się lub kontekstu]\n\n[Treść główna - jasne przedstawienie sprawy]\n\n[Prośba/oczekiwanie - co chcesz osiągnąć]\n\nZ poważaniem,\n[Imię Nazwisko]\n[Stanowisko]\n[Kontakt]\n```\n\n### Wskazówki:\n✅ Krótkie zdania\n✅ Jeden temat = jeden email\n✅ Sprawdź pisownię\n✅ Profesjonalny ton\n\n**Podaj szczegóły, a napiszę spersonalizowany email!**";
+                }
 
-def sort_array(arr: List[Any], ascending: bool = True) -> List[Any]:
-    """Sortuje tablicę rosnąco lub malejąco."""
-    return sorted(arr, reverse=not ascending)
+                // Pomysły na aplikację
+                if (msg.includes('pomysł') && (msg.includes('aplik') || msg.includes('app'))) {
+                    return "## 10 Pomysłów na Aplikację 2024 📱\n\n### Produktywność\n1. **AI Task Manager** - inteligentne zarządzanie zadaniami\n2. **Focus Timer Pro** - Pomodoro z analityką\n3. **Voice Notes AI** - transkrypcja + podsumowania\n\n### Zdrowie\n4. **Sleep Optimizer** - analiza snu + smart alarm\n5. **Meal Planner AI** - planowanie posiłków\n6. **Mental Health Journal** - dziennik z AI wsparciem\n\n### Social\n7. **Skill Swap** - wymiana umiejętności\n8. **Local Events** - wydarzenia w okolicy\n\n### Finanse\n9. **Smart Budget** - AI kategoryzacja wydatków\n10. **Investment Tracker** - portfolio + analizy\n\n**Który pomysł Cię interesuje? Mogę rozwinąć szczegóły!**";
+                }
 
-def sort_by_key(arr: List[dict], key: str, ascending: bool = True) -> List[dict]:
-    """Sortuje listę słowników po podanym kluczu."""
-    return sorted(arr, key=lambda x: x[key], reverse=not ascending)
+                // Domyślna odpowiedź
+                return "Dziękuję za pytanie! 🤖\n\n**Twoje zapytanie:** \"" + input.substring(0, 100) + (input.length > 100 ? "..." : "") + "\"\n\nJako DoszHub AI 1.0v mogę pomóc z:\n\n• 💻 **Programowanie** - kod, debugowanie, algorytmy\n• 📝 **Pisanie** - emaile, dokumenty, teksty\n• 🧠 **Wyjaśnienia** - koncepty, technologie\n• 💡 **Pomysły** - brainstorming, planowanie\n\nCzy mógłbyś doprecyzować swoje pytanie? Im więcej szczegółów, tym lepsza odpowiedź!";
+            }
 
-# Przykłady użycia:
-numbers = [5, 2, 8, 1, 9]
-print(sort_array(numbers))  # [1, 2, 5, 8, 9]
-print(sort_array(numbers, False))  # [9, 8, 5, 2, 1]
+            // === ZAPIS HISTORII ===
+            function saveChatToHistory() {
+                if (messages.length === 0) return;
 
-users = [
-    {'name': 'Jan', 'age': 25},
-    {'name': 'Anna', 'age': 30},
-    {'name': 'Piotr', 'age': 20}
-]
-print(sort_by_key(users, 'age'))
-\`\`\`
+                const title = messages[0].content.substring(0, 30) + '...';
+                const chatItem = {
+                    id: currentChatId || Date.now(),
+                    title: title,
+                    messages: [...messages],
+                    timestamp: new Date().toISOString()
+                };
 
-Potrzebujesz dodatkowych wyjaśnień?`,
+                const existingIndex = chatHistory.findIndex(c => c.id === chatItem.id);
+                if (existingIndex >= 0) {
+                    chatHistory[existingIndex] = chatItem;
+                } else {
+                    chatHistory.unshift(chatItem);
+                }
 
-                    ml: `**Machine Learning (Uczenie Maszynowe)** to dziedzina sztucznej inteligencji, która pozwala 
+                if (chatHistory.length > 20) {
+                    chatHistory = chatHistory.slice(0, 20);
+                }
+
+                localStorage.setItem('doszHubHistory', JSON.stringify(chatHistory));
+                renderHistory();
+            }
+
+            // === RENDEROWANIE HISTORII ===
+            function renderHistory() {
+                chatHistoryEl.innerHTML = '';
+                
+                chatHistory.forEach(function(chat) {
+                    const item = document.createElement('div');
+                    item.className = 'chat-item' + (chat.id === currentChatId ? ' active' : '');
+                    item.innerHTML = `
+                        <i class="fas fa-message"></i>
+                        <span class="chat-item-text">${escapeHtml(chat.title)}</span>
+                        <button class="chat-item-delete" title="Usuń"><i class="fas fa-trash"></i></button>
+                    `;
+
+                    item.addEventListener('click', function(e) {
+                        if (!e.target.closest('.chat-item-delete')) {
+                            loadChat(chat.id);
+                        }
+                    });
+
+                    item.querySelector('.chat-item-delete').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        deleteChat(chat.id);
+                    });
+
+                    chatHistoryEl.appendChild(item);
+                });
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // === ŁADOWANIE CHATU ===
+            function loadChat(chatId) {
+                const chat = chatHistory.find(c => c.id === chatId);
+                if (!chat) return;
+
+                currentChatId = chatId;
+                messages = [...chat.messages];
+
+                chatMessages.innerHTML = '';
+                messages.forEach(function(msg) {
+                    addMessageToChat(msg.content, msg.type);
+                });
+
+                welcomeScreen.classList.add('hidden');
+                chatMessages.classList.add('active');
+                renderHistory();
+            }
+
+            // === USUWANIE CHATU ===
+            function deleteChat(chatId) {
+                chatHistory = chatHistory.filter(c => c.id !== chatId);
+                localStorage.setItem('doszHubHistory', JSON.stringify(chatHistory));
+                renderHistory();
+
+                if (chatId === currentChatId) {
+                    messages = [];
+                    currentChatId = Date.now();
+                    chatMessages.innerHTML = '';
+                    chatMessages.classList.remove('active');
+                    welcomeScreen.classList.remove('hidden');
+                }
+
+                showToast('Usunięto rozmowę', 'success');
+            }
+
+            // === ŁADOWANIE DANYCH ===
+            function loadData() {
+                // Historia
+                const savedHistory = localStorage.getItem('doszHubHistory');
+                if (savedHistory) {
+                    try {
+                        chatHistory = JSON.parse(savedHistory);
+                        renderHistory();
+                    } catch (e) {}
+                }
+
+                // Ustawienia
+                const savedSettings = localStorage.getItem('doszHubSettings');
+                if (savedSettings) {
+                    try {
+                        const s = JSON.parse(savedSettings);
+                        document.getElementById('modelSelect').value = s.model || 'doszhub-1.0';
+                        temperature.value = s.temperature || 70;
+                        maxTokens.value = s.maxTokens || 2000;
+                        document.getElementById('apiKey').value = s.apiKey || '';
+                        tempValue.textContent = (temperature.value / 100).toFixed(1);
+                        tokensValue.textContent = maxTokens.value;
+                    } catch (e) {}
+                }
+            }
+
+            // === PRZYCISKI DODATKOWE ===
+            document.getElementById('attachBtn').addEventListener('click', function() {
+                showToast('Funkcja załączników wkrótce!', 'info');
+            });
+
+            document.getElementById('micBtn').addEventListener('click', function() {
+                showToast('Funkcja głosowa wkrótce!', 'info');
+            });
+
+            // === START ===
+            currentChatId = Date.now();
+            loadData();
+            
+            console.log('✅ DoszHub AI 1.0v załadowany pomyślnie!');
+        });
+    </script>
+</body>
+</html>
