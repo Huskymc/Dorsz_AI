@@ -976,4 +976,276 @@
         </aside>
 
         <!-- Chat Area -->
-        <main 
+        <main class="chat-area" id="chatArea">
+            <!-- Welcome Screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h2>Witaj w DoszHub AI</h2>
+                <p>Jestem Twoim inteligentnym asystentem. Mogę pomóc Ci z programowaniem, analizą, kreatywnymi projektami i wieloma innymi zadaniami.</p>
+                
+                <div class="suggestions" id="suggestions">
+                    <div class="suggestion-card" data-text="Napisz funkcję JavaScript do sortowania tablicy">
+                        <i class="fas fa-code"></i>
+                        <h4>Pomoc z kodem</h4>
+                        <p>Napisz funkcję JavaScript do sortowania tablicy</p>
+                    </div>
+                    <div class="suggestion-card" data-text="Wyjaśnij jak działa machine learning">
+                        <i class="fas fa-brain"></i>
+                        <h4>Wyjaśnij koncept</h4>
+                        <p>Wyjaśnij jak działa machine learning</p>
+                    </div>
+                    <div class="suggestion-card" data-text="Pomóż mi napisać profesjonalny email">
+                        <i class="fas fa-envelope"></i>
+                        <h4>Pisanie tekstów</h4>
+                        <p>Pomóż mi napisać profesjonalny email</p>
+                    </div>
+                    <div class="suggestion-card" data-text="Zaproponuj pomysły na aplikację mobilną">
+                        <i class="fas fa-lightbulb"></i>
+                        <h4>Burza mózgów</h4>
+                        <p>Zaproponuj pomysły na aplikację mobilną</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be inserted here -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <div class="input-actions">
+                            <button class="input-action-btn" id="attachBtn" title="Załącz plik">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button class="input-action-btn" id="micBtn" title="Nagranie głosowe">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Napisz wiadomość do DoszHub AI..."
+                            rows="1"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" title="Wyślij">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="input-info">
+                        <span>DoszHub AI 1.0v może popełniać błędy. Weryfikuj ważne informacje.</span>
+                        <span id="charCount">0 / 4000</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> Ustawienia</h3>
+                <button class="modal-close" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="setting-group">
+                <label>Model AI</label>
+                <select id="modelSelect">
+                    <option value="doszhub-1.0">DoszHub 1.0 (Domyślny)</option>
+                    <option value="doszhub-1.0-fast">DoszHub 1.0 Fast</option>
+                    <option value="doszhub-1.0-creative">DoszHub 1.0 Creative</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Temperatura (kreatywność): <span id="tempDisplay">0.7</span></label>
+                <div class="slider-container">
+                    <input type="range" id="temperature" min="0" max="100" value="70">
+                    <span class="slider-value" id="tempValue">0.7</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Maksymalna długość odpowiedzi: <span id="tokensDisplay">2000</span></label>
+                <div class="slider-container">
+                    <input type="range" id="maxTokens" min="100" max="4000" value="2000" step="100">
+                    <span class="slider-value" id="tokensValue">2000</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Klucz API (opcjonalnie)</label>
+                <input type="password" id="apiKey" placeholder="Wprowadź klucz API...">
+            </div>
+
+            <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%;">
+                <i class="fas fa-save"></i>
+                Zapisz ustawienia
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Ustawienia zapisane!</span>
+    </div>
+
+    <script>
+        // ========================================
+        // DoszHub AI 1.0v - Main JavaScript
+        // Wszystkie funkcje w jednym IIFE
+        // ========================================
+
+        (function() {
+            'use strict';
+
+            // ===== STAN APLIKACJI =====
+            const state = {
+                messages: [],
+                chatHistory: [],
+                currentChatId: null,
+                isTyping: false,
+                settings: {
+                    model: 'doszhub-1.0',
+                    temperature: 0.7,
+                    maxTokens: 2000,
+                    apiKey: ''
+                }
+            };
+
+            // ===== ELEMENTY DOM =====
+            const elements = {
+                // Main elements
+                sidebar: document.getElementById('sidebar'),
+                chatArea: document.getElementById('chatArea'),
+                welcomeScreen: document.getElementById('welcomeScreen'),
+                chatMessages: document.getElementById('chatMessages'),
+                chatHistory: document.getElementById('chatHistory'),
+                
+                // Input elements
+                messageInput: document.getElementById('messageInput'),
+                sendBtn: document.getElementById('sendBtn'),
+                charCount: document.getElementById('charCount'),
+                
+                // Buttons
+                toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
+                settingsBtn: document.getElementById('settingsBtn'),
+                newChatBtn: document.getElementById('newChatBtn'),
+                closeModalBtn: document.getElementById('closeModalBtn'),
+                saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+                attachBtn: document.getElementById('attachBtn'),
+                micBtn: document.getElementById('micBtn'),
+                
+                // Modal
+                settingsModal: document.getElementById('settingsModal'),
+                
+                // Settings inputs
+                modelSelect: document.getElementById('modelSelect'),
+                temperature: document.getElementById('temperature'),
+                maxTokens: document.getElementById('maxTokens'),
+                apiKey: document.getElementById('apiKey'),
+                tempValue: document.getElementById('tempValue'),
+                tokensValue: document.getElementById('tokensValue'),
+                
+                // Toast
+                toast: document.getElementById('toast'),
+                toastMessage: document.getElementById('toastMessage'),
+                
+                // Suggestions
+                suggestions: document.getElementById('suggestions'),
+                
+                // Particles
+                particles: document.getElementById('particles')
+            };
+
+            // ===== BAZA WIEDZY AI =====
+            const aiKnowledge = {
+                greetings: [
+                    "Cześć! 👋 Jestem DoszHub AI. Jak mogę Ci dzisiaj pomóc?",
+                    "Witaj! Jestem gotowy do pomocy. Co chciałbyś omówić?",
+                    "Hej! DoszHub AI do usług. W czym mogę Ci pomóc?"
+                ],
+                
+                responses: {
+                    capabilities: `Jako DoszHub AI 1.0v mogę Ci pomóc w wielu obszarach:
+
+🔹 **Programowanie** - pisanie, debugowanie i wyjaśnianie kodu
+🔹 **Analiza danych** - pomoc w analizie i wizualizacji
+🔹 **Pisanie tekstów** - artykuły, emaile, dokumentacja
+🔹 **Nauka** - wyjaśnianie konceptów i zagadnień
+🔹 **Kreatywność** - burza mózgów, pomysły
+🔹 **Tłumaczenia** - między różnymi językami
+
+Wystarczy, że opiszesz swoje zadanie!`,
+
+                    javascript: `Oto przykładowa funkcja sortowania w JavaScript:
+
+\`\`\`javascript
+// Funkcja sortowania tablicy
+function sortArray(arr, ascending = true) {
+    return [...arr].sort((a, b) => {
+        return ascending ? a - b : b - a;
+    });
+}
+
+// Sortowanie obiektów po kluczu
+function sortByKey(arr, key, ascending = true) {
+    return [...arr].sort((a, b) => {
+        if (ascending) {
+            return a[key] > b[key] ? 1 : -1;
+        }
+        return a[key] < b[key] ? 1 : -1;
+    });
+}
+
+// Przykłady użycia:
+const numbers = [5, 2, 8, 1, 9];
+console.log(sortArray(numbers)); // [1, 2, 5, 8, 9]
+console.log(sortArray(numbers, false)); // [9, 8, 5, 2, 1]
+
+const users = [
+    { name: 'Jan', age: 25 },
+    { name: 'Anna', age: 30 },
+    { name: 'Piotr', age: 20 }
+];
+console.log(sortByKey(users, 'age'));
+\`\`\`
+
+Czy chcesz, żebym wyjaśnił jak to działa lub zmodyfikował kod?`,
+
+                    python: `Oto przykładowa funkcja sortowania w Pythonie:
+
+\`\`\`python
+from typing import List, Any, Optional
+
+def sort_array(arr: List[Any], ascending: bool = True) -> List[Any]:
+    """Sortuje tablicę rosnąco lub malejąco."""
+    return sorted(arr, reverse=not ascending)
+
+def sort_by_key(arr: List[dict], key: str, ascending: bool = True) -> List[dict]:
+    """Sortuje listę słowników po podanym kluczu."""
+    return sorted(arr, key=lambda x: x[key], reverse=not ascending)
+
+# Przykłady użycia:
+numbers = [5, 2, 8, 1, 9]
+print(sort_array(numbers))  # [1, 2, 5, 8, 9]
+print(sort_array(numbers, False))  # [9, 8, 5, 2, 1]
+
+users = [
+    {'name': 'Jan', 'age': 25},
+    {'name': 'Anna', 'age': 30},
+    {'name': 'Piotr', 'age': 20}
+]
+print(sort_by_key(users, 'age'))
+\`\`\`
+
+Potrzebujesz dodatkowych wyjaśnień?`,
+
+                    ml: `**Machine Learning (Uczenie Maszynowe)** to dziedzina sztucznej inteligencji, która pozwala 
